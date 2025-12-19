@@ -1,148 +1,229 @@
-"use client";
 
-import { Card } from "@/components/ui/card";
+"use client"
+
+import { useEffect, useState } from "react"
 import {
-  Users,
+  CheckCircle2,
+  Clock,
+  XCircle,
+  AlertCircle,
   TrendingUp,
-  Activity
-} from "lucide-react";
-import { MrrBarChart, ArrBarChart, ChurnLineChart } from "@/components/charts/revenue-charts";
-import { useDashboard } from "@/hooks/use-dashboard";
+  MoreHorizontal
+} from "lucide-react"
+import { Button } from "@/components/ui/button"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Skeleton } from "@/components/ui/skeleton"
+import { KpiCard } from "@/components/dashboard/kpi-card"
+import { SectionHeader } from "@/components/dashboard/section-header"
+import { StatusBadge } from "@/components/dashboard/status-badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
-export default function AdminDashboard() {
-  const { data: stats, isLoading, error } = useDashboard();
+// --- Mock Data ---
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <p className="text-muted-foreground">Failed to load dashboard data</p>
-          <p className="text-sm text-destructive mt-1">
-            {error instanceof Error ? error.message : 'Unknown error'}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Painel do Administrador</h1>
-          <p className="text-muted-foreground mt-2">Visão geral do sistema e análises</p>
-        </div>
-        <div />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-muted-foreground text-sm">Total de Usuários</p>
-              <p className="text-2xl font-bold text-foreground mt-1">
-                {stats?.totalUsers || 0}
-              </p>
-            </div>
-            <Users className="h-8 w-8 text-blue-500" />
-          </div>
-          <div className="mt-4 flex items-center text-sm">
-            <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-            <span className="text-green-500">+12%</span>
-            <span className="text-muted-foreground ml-2">do último mês</span>
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-muted-foreground text-sm">Usuários Ativos</p>
-              <p className="text-2xl font-bold text-foreground mt-1">
-                {stats?.activeUsers || 0}
-              </p>
-            </div>
-            <Activity className="h-8 w-8 text-green-500" />
-          </div>
-          <div className="mt-4 flex items-center text-sm">
-            <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-            <span className="text-green-500">+8%</span>
-            <span className="text-muted-foreground ml-2">da última semana</span>
-          </div>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="p-6">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <div>
-              <h2 className="text-xl font-semibold text-foreground">MRR</h2>
-              <p className="text-sm text-muted-foreground">Receita Recorrente Mensal</p>
-            </div>
-            {stats?.mrrSeries && <DeltaBadge series={stats.mrrSeries} goodWhenPositive />}
-          </div>
-          {stats?.mrrSeries && <MrrBarChart data={stats.mrrSeries} />}
-        </Card>
-
-        <Card className="p-6">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <div>
-              <h2 className="text-xl font-semibold text-foreground">ARR</h2>
-              <p className="text-sm text-muted-foreground">Receita Recorrente Anual</p>
-            </div>
-            {stats?.arrSeries && <DeltaBadge series={stats.arrSeries} goodWhenPositive />}
-          </div>
-          {stats?.arrSeries && <ArrBarChart data={stats.arrSeries} />}
-        </Card>
-
-        <Card className="p-6">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <div>
-              <h2 className="text-xl font-semibold text-foreground">Churn</h2>
-              <p className="text-sm text-muted-foreground">Taxa de cancelamento de clientes</p>
-            </div>
-            {stats?.churnSeries && <DeltaBadge series={stats.churnSeries} goodWhenPositive={false} suffix="%" />}
-          </div>
-          {stats?.churnSeries && <ChurnLineChart data={stats.churnSeries} />}
-        </Card>
-      </div>
-    </div>
-  );
+interface PendingItem {
+  id: string
+  title: string
+  type: "Negócio" | "Event" | "Vaga"
+  submitter: string
+  submittedAt: string
 }
 
-function DeltaBadge({ series, goodWhenPositive = true, suffix = "" }: { series: { label: string; value: number }[]; goodWhenPositive?: boolean; suffix?: string }) {
-  if (!series || series.length < 2) return null
-  const last = series[series.length - 1].value
-  const prev = series[series.length - 2].value
-  const deltaRaw = last - prev
-  const deltaPct = prev === 0 ? (last > 0 ? 100 : 0) : (deltaRaw / prev) * 100
-  const isGood = goodWhenPositive ? deltaPct > 0 : deltaPct < 0
-  const isBad = goodWhenPositive ? deltaPct < 0 : deltaPct > 0
-  const color = isGood ? "emerald" : isBad ? "red" : "zinc"
-  const sign = deltaPct > 0 ? "+" : ""
+interface TopListing {
+  id: string
+  title: string
+  clicks: number
+  growth: string
+}
+
+const MOCK_PENDING: PendingItem[] = [
+  { id: "101", title: "Restaurante Sabor Latino", type: "Negócio", submitter: "Carlos Silva", submittedAt: "Hoje, 10:30" },
+  { id: "102", title: "Vaga de Atendente bilíngue", type: "Vaga", submitter: "RH K.K.", submittedAt: "Hoje, 09:15" },
+  { id: "103", title: "Festival de Verão 2025", type: "Event", submitter: "Eventos JP", submittedAt: "Ontem, 18:00" },
+  { id: "104", title: "Loja de Produtos Brasileiros", type: "Negócio", submitter: "Maria Oliveira", submittedAt: "Ontem, 14:20" },
+]
+
+const MOCK_TOP_LISTINGS: TopListing[] = [
+  { id: "201", title: "Churrascaria Brasil", clicks: 1240, growth: "+15%" },
+  { id: "202", title: "Empreiteira Nova Esperança", clicks: 890, growth: "+8%" },
+  { id: "203", title: "Show Sertanejo Tokyo", clicks: 650, growth: "+22%" },
+  { id: "204", title: "Loja Virtual BR", clicks: 420, growth: "+5%" },
+  { id: "205", title: "Consultoria Vistos", clicks: 380, growth: "+2%" },
+]
+
+export default function AdminDashboard() {
+  const [isLoading, setIsLoading] = useState(true)
+  const [pendingItems, setPendingItems] = useState<PendingItem[]>([])
+  const [topListings, setTopListings] = useState<TopListing[]>([])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPendingItems(MOCK_PENDING)
+      setTopListings(MOCK_TOP_LISTINGS)
+      setIsLoading(false)
+    }, 1500)
+    return () => clearTimeout(timer)
+  }, [])
+
+  if (isLoading) {
+    return <AdminDashboardSkeleton />
+  }
 
   return (
-    <span
-      className={
-        `inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium ` +
-        (color === 'emerald'
-          ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-600'
-          : color === 'red'
-          ? 'border-red-500/20 bg-red-500/10 text-red-600'
-          : 'border-muted bg-muted/50 text-foreground/60')
-      }
-      title="Variação mês a mês"
-    >
-      {`${sign}${deltaPct.toFixed(1)}${suffix} MoM`}
-    </span>
+    <div className="flex flex-1 flex-col gap-6 p-6">
+      <SectionHeader
+        title="Painel Admin"
+        description="Gestão de aprovações e métricas da plataforma."
+      />
+
+      {/* KPI Cards */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <KpiCard
+          title="Pendentes Hoje"
+          value={pendingItems.filter(i => i.submittedAt.includes("Hoje")).length}
+          icon={AlertCircle}
+          description="Aguardando revisão"
+          trend={{ value: "+2", isPositive: false }} // Red because more pending is "bad"/workload
+        />
+        <KpiCard
+          title="Aprovados (Semana)"
+          value={142}
+          icon={CheckCircle2}
+          description="Novas publicações"
+          trend={{ value: "+18%", isPositive: true }}
+        />
+        <KpiCard
+          title="Rejeitados (Semana)"
+          value={12}
+          icon={XCircle}
+          description="Não conformes"
+          trend={{ value: "-5%", isPositive: true }} // Green because less rejected is good? Or bad? Context dependent. Let's say good.
+        />
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
+
+        {/* Pending Queue Section (Larger, 4 cols) */}
+        <div className="md:col-span-4 space-y-4">
+          <SectionHeader title="Fila de Pendências" />
+          <div className="rounded-md border bg-card">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Título</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Enviado</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {pendingItems.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{item.title}</span>
+                        <span className="text-xs text-muted-foreground">{item.submitter}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>{item.type}</TableCell>
+                    <TableCell>{item.submittedAt}</TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Abrir menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                          <DropdownMenuItem>Revisar</DropdownMenuItem>
+                          <DropdownMenuItem className="text-green-600">Aprovar Rápido</DropdownMenuItem>
+                          <DropdownMenuItem className="text-red-600">Rejeitar</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+
+        {/* Top Listings Section (Smaller, 3 cols) */}
+        <div className="md:col-span-3 space-y-4">
+          <SectionHeader title="Top Anúncios por Contato" />
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm font-medium">Mais Populares</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-6">
+              {topListings.map((listing, index) => (
+                <div key={listing.id} className="flex items-center justify-between space-x-4">
+                  <div className="flex items-center space-x-4">
+                    <Avatar className="h-9 w-9">
+                      {/* Using fallback for now, in real app listing image */}
+                      <AvatarFallback>{index + 1}</AvatarFallback>
+                    </Avatar>
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium leading-none">{listing.title}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {listing.clicks} cliques
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center font-medium text-green-500 text-sm">
+                    {listing.growth} <TrendingUp className="ml-1 h-3 w-3" />
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+
+      </div>
+    </div>
   )
 }
 
-// Removed seed/backfill demo buttons to simplify admin surface
+function AdminDashboardSkeleton() {
+  return (
+    <div className="flex flex-1 flex-col gap-6 p-6">
+      <div className="space-y-2">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-4 w-64" />
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        {[...Array(3)].map((_, i) => (
+          <Skeleton key={i} className="h-32 rounded-xl" />
+        ))}
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-7">
+        <div className="md:col-span-4 space-y-4">
+          <Skeleton className="h-8 w-40" />
+          <Skeleton className="h-[300px] w-full rounded-xl" />
+        </div>
+        <div className="md:col-span-3 space-y-4">
+          <Skeleton className="h-8 w-40" />
+          <Skeleton className="h-[300px] w-full rounded-xl" />
+        </div>
+      </div>
+    </div>
+  )
+}

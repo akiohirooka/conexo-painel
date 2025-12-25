@@ -35,11 +35,11 @@ export function Topbar() {
                     <Plus className="mr-2 h-4 w-4" />
                     Novo Anúncio
                 </Button>
-                <Button size="icon" className="md:hidden bg-conexo-blue hover:bg-conexo-blue/90 text-white">
+                <Button size="icon" className="md:hidden bg-conexo-blue hover:bg-conexo-blue/90 text-white" aria-label="Novo Anúncio">
                     <Plus className="h-4 w-4" />
                 </Button>
 
-                <Button variant="ghost" size="icon" className="text-muted-foreground">
+                <Button variant="ghost" size="icon" className="text-muted-foreground" aria-label="Notificações">
                     <Bell className="h-5 w-5" />
                 </Button>
 

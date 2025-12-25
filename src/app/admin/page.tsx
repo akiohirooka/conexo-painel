@@ -27,9 +27,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
-import { KpiCard } from "@/components/dashboard/kpi-card"
-import { SectionHeader } from "@/components/dashboard/section-header"
-import { StatusBadge } from "@/components/dashboard/status-badge"
+import { KpiCard } from "@/components/ui-conexo/kpi-card"
+import { PageHeader } from "@/components/ui-conexo/page-header"
+import { StatusBadge } from "@/components/ui-conexo/status-badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
@@ -85,7 +85,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-6">
-      <SectionHeader
+      <PageHeader
         title="Painel Admin"
         description="Gestão de aprovações e métricas da plataforma."
       />
@@ -119,7 +119,7 @@ export default function AdminDashboard() {
 
         {/* Pending Queue Section (Larger, 4 cols) */}
         <div className="md:col-span-4 space-y-4">
-          <SectionHeader title="Fila de Pendências" />
+          <PageHeader title="Fila de Pendências" />
           <div className="rounded-md border bg-card">
             <Table>
               <TableHeader>
@@ -166,7 +166,7 @@ export default function AdminDashboard() {
 
         {/* Top Listings Section (Smaller, 3 cols) */}
         <div className="md:col-span-3 space-y-4">
-          <SectionHeader title="Top Anúncios por Contato" />
+          <PageHeader title="Top Anúncios por Contato" />
           <Card>
             <CardHeader>
               <CardTitle className="text-sm font-medium">Mais Populares</CardTitle>

@@ -20,10 +20,10 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
-import { KpiCard } from "@/components/dashboard/kpi-card"
-import { SectionHeader } from "@/components/dashboard/section-header"
-import { StatusBadge } from "@/components/dashboard/status-badge"
-import { EmptyState } from "@/components/dashboard/empty-state"
+import { KpiCard } from "@/components/ui-conexo/kpi-card"
+import { PageHeader } from "@/components/ui-conexo/page-header"
+import { StatusBadge } from "@/components/ui-conexo/status-badge"
+import { EmptyState } from "@/components/ui-conexo/empty-state"
 import Link from "next/link"
 
 // --- Mock Data ---
@@ -73,7 +73,7 @@ export default function DashboardPage() {
 
     return (
         <div className="flex flex-1 flex-col gap-6 p-6">
-            <SectionHeader
+            <PageHeader
                 title="Visão Geral"
                 description="Acompanhe o desempenho dos seus anúncios."
                 action={
@@ -118,7 +118,7 @@ export default function DashboardPage() {
 
             {/* Recent Listings Section */}
             <div className="space-y-4">
-                <SectionHeader title="Anúncios Recentes" />
+                <PageHeader title="Anúncios Recentes" />
 
                 {listings.length > 0 ? (
                     <div className="rounded-md border bg-card">

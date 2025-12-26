@@ -76,15 +76,6 @@ export default function DashboardPage() {
             <PageHeader
                 title="Visão Geral"
                 description="Acompanhe o desempenho dos seus anúncios."
-                action={
-                    <div className="flex gap-2">
-                        <Button asChild>
-                            <Link href="/novo-negocio">
-                                <Plus className="mr-2 h-4 w-4" /> Novo Anúncio
-                            </Link>
-                        </Button>
-                    </div>
-                }
             />
 
             {/* KPI Cards */}
@@ -150,13 +141,9 @@ export default function DashboardPage() {
                 ) : (
                     <EmptyState
                         title="Nenhum anúncio encontrado"
-                        description="Você ainda não criou nenhum anúncio. Comece agora para alcançar mais clientes."
+                        description="Você ainda não criou nenhum anúncio. Navegue pelas seções de Negócios, Eventos ou Vagas para criar um novo."
                         icon={LayoutDashboard}
-                    >
-                        <Button className="mt-4" asChild>
-                            <Link href="/novo-negocio">Criar Anúncio</Link>
-                        </Button>
-                    </EmptyState>
+                    />
                 )}
             </div>
         </div>

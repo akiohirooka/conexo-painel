@@ -10,16 +10,45 @@ export interface PendingItem {
         image?: string;
     };
     submittedAt: string; // ISO Date string
-    status: "pending" | "approved" | "rejected" | "live"; // 'live' is essentially approved for this context
+    status: "pending" | "approved" | "rejected" | "live";
     location?: string;
     description: string;
-    // Specific fields for different types could be added here or kept generic for the list preview
+
+    // Richer details object matching our new Schema
     details?: {
+        // Business
         category?: string;
-        salaryRange?: string; // for jobs
-        eventDate?: string; // for events
-        website?: string;
-        phone?: string;
+        contact?: {
+            whatsapp?: string;
+            instagram?: string;
+            phone?: string;
+            website?: string;
+            email?: string;
+        };
+        address?: {
+            street?: string;
+            city?: string;
+            state?: string;
+            zipCode?: string;
+        };
+
+        // Event
+        eventDate?: string;
+        startTime?: string;
+        isOnline?: boolean;
+        ticketPrice?: number;
+        ticketUrl?: string;
+
+        // Job
+        company?: string;
+        workModel?: 'onsite' | 'hybrid' | 'remote';
+        salary?: {
+            amount: number;
+            period: 'hour' | 'month' | 'year';
+            negotiable: boolean;
+        };
+        requirements?: string[];
+        benefits?: string[];
     };
 }
 
@@ -35,11 +64,20 @@ export const PENDING_ITEMS: PendingItem[] = [
         submittedAt: "2024-05-10T14:30:00Z",
         status: "pending",
         location: "São Paulo, SP",
-        description: "Uma cafeteria aconchegante no centro da cidade, especializada em grãos especiais e doces artesanais.",
+        description: "Uma cafeteria aconchegante no centro da cidade, especializada em grãos especiais e doces artesanais. Oferecemos ambiente para co-working e wi-fi gratuito.",
         details: {
             category: "Alimentação",
-            website: "https://cafeteriacentral.com.br",
-            phone: "(11) 99999-9999",
+            contact: {
+                whatsapp: "(11) 99999-9999",
+                instagram: "@cafecentralsps",
+                website: "https://cafeteriacentral.com.br"
+            },
+            address: {
+                street: "Rua Augusta, 1000",
+                city: "São Paulo",
+                state: "SP",
+                zipCode: "01305-100"
+            }
         },
     },
     {
@@ -53,11 +91,18 @@ export const PENDING_ITEMS: PendingItem[] = [
         submittedAt: "2024-05-11T09:15:00Z",
         status: "pending",
         location: "Florianópolis, SC",
-        description: "O maior evento de tecnologia do sul do Brasil, reunindo startups, investidores e palestrantes internacionais.",
+        description: "O maior evento de tecnologia do sul do Brasil, reunindo startups, investidores e palestrantes internacionais. Networking, palestras e feira de negócios.",
         details: {
-            category: "Tecnologia",
             eventDate: "2024-11-20T08:00:00Z",
-            website: "https://websummitfloripa.com.br",
+            startTime: "09:00",
+            ticketPrice: 450.00,
+            ticketUrl: "https://websummitfloripa.com.br/ingressos",
+            isOnline: false,
+            address: {
+                street: "Centro Sul",
+                city: "Florianópolis",
+                state: "SC"
+            }
         },
     },
     {
@@ -71,58 +116,37 @@ export const PENDING_ITEMS: PendingItem[] = [
         submittedAt: "2024-05-12T16:45:00Z",
         status: "pending",
         location: "Remoto",
-        description: "Estamos buscando um desenvolvedor Frontend experiente em React, Next.js e Tailwind CSS para liderar nossa equipe de produtos.",
+        description: "Estamos buscando um desenvolvedor Frontend experiente em React, Next.js e Tailwind CSS para liderar nossa equipe de produtos. Você trabalhará em projetos desafiadores e escaláveis.",
         details: {
-            category: "Desenvolvimento",
-            salaryRange: "R$ 12.000 - R$ 15.000",
-            website: "https://techsolutions.com/careers",
-        },
-    },
-    {
-        id: "4",
-        title: "Padaria do Bairro",
-        type: "business",
-        author: {
-            name: "Carlos Santos",
-            email: "carlos.padaria@example.com",
-        },
-        submittedAt: "2024-05-13T07:00:00Z",
-        status: "pending",
-        location: "Curitiba, PR",
-        description: "Pães frescos todos os dias com receitas tradicionais da família.",
-        details: {
-            category: "Alimentação",
-            phone: "(41) 3333-3333",
-        },
-    },
-    {
-        id: "5",
-        title: "Workshop de UX Design",
-        type: "event",
-        author: {
-            name: "Ana Costa",
-            email: "ana.ux@example.com",
-        },
-        submittedAt: "2024-05-14T18:20:00Z",
-        status: "pending",
-        location: "Online",
-        description: "Aprenda as melhores práticas de UX Design com especialistas do mercado em um workshop prático de 4 horas.",
-        details: {
-            category: "Educação",
-            eventDate: "2024-06-15T14:00:00Z",
-            website: "https://uxworkshop.com.br",
+            company: "Tech Solutions",
+            workModel: "remote",
+            salary: {
+                amount: 15000,
+                period: "month",
+                negotiable: true
+            },
+            requirements: [
+                "5+ anos de experiência com React",
+                "Domínio de TypeScript e Next.js",
+                "Experiência com Testes (Jest/Cypress)",
+                "Inglês Avançado"
+            ],
+            benefits: [
+                "Plano de Saúde Internacional",
+                "Stock Options",
+                "Auxílio Home Office",
+                "Gympass"
+            ]
         },
     },
 ];
 
 export async function getPendingItems(): Promise<PendingItem[]> {
-    // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 500));
     return PENDING_ITEMS;
 }
 
 export async function getPendingItemById(id: string): Promise<PendingItem | undefined> {
-    // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 500));
     return PENDING_ITEMS.find((item) => item.id === id);
 }

@@ -3,7 +3,6 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import {
     MapPin,
     Clock,
@@ -11,7 +10,12 @@ import {
     Building2,
     Phone,
     MessageCircle,
-    Calendar
+    Calendar,
+    Globe,
+    Mail,
+    Instagram,
+    CheckCircle2,
+    Ticket
 } from "lucide-react";
 import { PendingItem } from "../data";
 
@@ -22,6 +26,8 @@ interface ListingPreviewProps {
 export function ListingPreview({ item }: ListingPreviewProps) {
     // Use a placeholder image if none exists (mock logic)
     const coverImage = "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1200&h=400";
+
+    const { details } = item;
 
     return (
         <div className="space-y-6">
@@ -37,17 +43,23 @@ export function ListingPreview({ item }: ListingPreviewProps) {
                         className="w-full h-full object-cover"
                     />
                     {/* Overlay Tags */}
-                    <div className="absolute top-4 left-4 flex gap-2">
-                        {item.type === "event" && item.details?.eventDate && (
-                            <Badge className="bg-primary/90 hover:bg-primary">
-                                {new Date(item.details.eventDate).toLocaleDateString()}
+                    <div className="absolute top-4 left-4 flex flex-wrap gap-2">
+                        {item.type === "event" && details?.eventDate && (
+                            <Badge className="bg-primary/90 hover:bg-primary backdrop-blur-md">
+                                {new Date(details.eventDate).toLocaleDateString()}
                             </Badge>
                         )}
-                        {item.type === "job" && (
+                        {item.type === "job" && details?.workModel && (
+                            <Badge variant="secondary" className="backdrop-blur-md bg-background/80 uppercase">
+                                {details.workModel}
+                            </Badge>
+                        )}
+                        {item.type === "event" && details?.isOnline && (
                             <Badge variant="secondary" className="backdrop-blur-md bg-background/80">
-                                Remoto
+                                Online
                             </Badge>
                         )}
+
                         {/* Show Pending Status on Preview */}
                         <Badge variant="destructive" className="animate-pulse">
                             Modo Preview (Pendente)
@@ -58,21 +70,26 @@ export function ListingPreview({ item }: ListingPreviewProps) {
                 <div className="p-6 space-y-6">
                     {/* Header Info */}
                     <div className="space-y-2">
-                        {item.type === "business" && item.details?.category && (
-                            <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between">
+                            {details?.category && (
                                 <Badge variant="outline" className="border-primary/20 text-primary">
-                                    {item.details.category}
+                                    {details.category}
                                 </Badge>
-                            </div>
-                        )}
+                            )}
+                            {item.type === "job" && details?.company && (
+                                <span className="text-sm font-medium text-muted-foreground">
+                                    {details.company}
+                                </span>
+                            )}
+                        </div>
 
                         <h2 className="text-2xl font-bold leading-tight">{item.title}</h2>
 
-                        {/* Subtitles */}
+                        {/* Job Subtitle */}
                         {item.type === "job" && (
                             <div className="flex items-center gap-2 text-muted-foreground">
                                 <Building2 className="w-4 h-4" />
-                                <span>{item.author.name} (Empresa)</span>
+                                <span>{item.author.name}</span>
                             </div>
                         )}
                     </div>
@@ -80,55 +97,126 @@ export function ListingPreview({ item }: ListingPreviewProps) {
                     {/* Meta Grid */}
                     <div className="grid gap-3 text-sm">
                         {/* Location */}
-                        {item.location && (
+                        {(item.location || details?.address?.city) && (
                             <div className="flex items-start gap-3 text-muted-foreground">
                                 <MapPin className="w-4 h-4 mt-0.5" />
-                                <span>{item.location}</span>
+                                <span>
+                                    {details?.address ?
+                                        `${details.address.street || ''}, ${details.address.city} - ${details.address.state}`
+                                        : item.location}
+                                </span>
                             </div>
                         )}
 
                         {/* Date/Time (Event) */}
-                        {item.type === "event" && item.details?.eventDate && (
+                        {item.type === "event" && details?.eventDate && (
                             <div className="flex items-center gap-3 text-muted-foreground">
                                 <Clock className="w-4 h-4" />
-                                <span>{new Date(item.details.eventDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                <span>
+                                    {new Date(details.eventDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    {details.startTime ? ` às ${details.startTime}` : ''}
+                                </span>
                             </div>
                         )}
 
                         {/* Salary (Job) */}
-                        {item.type === "job" && item.details?.salaryRange && (
+                        {item.type === "job" && details?.salary && (
                             <div className="flex items-center gap-3 text-green-600 font-medium">
                                 <DollarSign className="w-4 h-4" />
-                                <span>{item.details.salaryRange}</span>
+                                <span>
+                                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(details.salary.amount)}
+                                    <span className="text-muted-foreground/80 font-normal lowercase"> /{details.salary.period}</span>
+                                    {details.salary.negotiable && <span className="text-xs ml-2 bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Negociável</span>}
+                                </span>
+                            </div>
+                        )}
+
+                        {/* Ticket Price (Event) */}
+                        {item.type === "event" && (
+                            <div className="flex items-center gap-3 font-medium">
+                                <Ticket className="w-4 h-4 text-primary" />
+                                <span>
+                                    {details?.ticketPrice
+                                        ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(details.ticketPrice)
+                                        : "Gratuito"}
+                                </span>
                             </div>
                         )}
                     </div>
 
-                    {/* Actions (Mock) */}
-                    <div className="pt-2 opacity-50 pointer-events-none grayscale">
-                        {item.type === "event" && (
-                            <Button className="w-full font-bold" size="lg">
-                                Comprar Ingresso
-                            </Button>
-                        )}
-                        {item.type === "job" && (
-                            <Button className="w-full font-bold" size="lg">
-                                Aplicar para a Vaga
-                            </Button>
-                        )}
-                        {item.type === "business" && (
-                            <div className="grid grid-cols-2 gap-2">
-                                <Button variant="outline" className="w-full">
-                                    <Phone className="w-4 h-4 mr-2" />
-                                    Ligar
-                                </Button>
-                                <Button className="w-full">
-                                    <MessageCircle className="w-4 h-4 mr-2" />
-                                    WhatsApp
-                                </Button>
+                    {/* Contact Info (Business) */}
+                    {item.type === "business" && details?.contact && (
+                        <div className="p-4 bg-muted/30 rounded-xl space-y-3">
+                            <h4 className="font-medium text-sm">Contatos</h4>
+                            <div className="grid grid-cols-1 gap-2 text-sm">
+                                {details.contact.whatsapp && (
+                                    <div className="flex items-center gap-2">
+                                        <MessageCircle className="w-4 h-4 text-green-600" />
+                                        <span>{details.contact.whatsapp}</span>
+                                    </div>
+                                )}
+                                {details.contact.phone && (
+                                    <div className="flex items-center gap-2">
+                                        <Phone className="w-4 h-4" />
+                                        <span>{details.contact.phone}</span>
+                                    </div>
+                                )}
+                                {details.contact.email && (
+                                    <div className="flex items-center gap-2">
+                                        <Mail className="w-4 h-4" />
+                                        <span>{details.contact.email}</span>
+                                    </div>
+                                )}
+                                {details.contact.instagram && (
+                                    <div className="flex items-center gap-2">
+                                        <Instagram className="w-4 h-4 text-pink-600" />
+                                        <span>{details.contact.instagram}</span>
+                                    </div>
+                                )}
+                                {details.contact.website && (
+                                    <div className="flex items-center gap-2">
+                                        <Globe className="w-4 h-4 text-blue-600" />
+                                        <a href={details.contact.website} target="_blank" className="hover:underline truncate">
+                                            {details.contact.website}
+                                        </a>
+                                    </div>
+                                )}
                             </div>
-                        )}
-                    </div>
+                        </div>
+                    )}
+
+                    {/* Job Requirements & Benefits */}
+                    {item.type === "job" && (
+                        <div className="space-y-4">
+                            {details?.requirements && details.requirements.length > 0 && (
+                                <div className="space-y-2">
+                                    <h4 className="font-semibold text-sm">Requisitos</h4>
+                                    <ul className="space-y-1">
+                                        {details.requirements.map((req, i) => (
+                                            <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                                                <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                                                <span>{req}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+
+                            {details?.benefits && details.benefits.length > 0 && (
+                                <div className="space-y-2 pt-2">
+                                    <h4 className="font-semibold text-sm">Benefícios</h4>
+                                    <div className="flex flex-wrap gap-2">
+                                        {details.benefits.map((ben, i) => (
+                                            <Badge key={i} variant="outline" className="bg-muted/50">
+                                                {ben}
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
 
                     {/* Description */}
                     {item.description && (
@@ -141,9 +229,35 @@ export function ListingPreview({ item }: ListingPreviewProps) {
                     )}
                 </div>
 
-                {/* Footer */}
-                <div className="bg-muted/50 p-4 text-center text-xs text-muted-foreground">
-                    Visualização como aparecerá para o usuário final
+                {/* Actions Footer */}
+                <div className="p-4 bg-muted/10 border-t space-y-3">
+                    {item.type === "event" && (
+                        <Button className="w-full font-bold" size="lg" asChild>
+                            <a href={details?.ticketUrl || "#"}>Comprar Ingresso</a>
+                        </Button>
+                    )}
+                    {item.type === "job" && (
+                        <Button className="w-full font-bold" size="lg">
+                            Aplicar para a Vaga
+                        </Button>
+                    )}
+                    {item.type === "business" && (
+                        <div className="grid grid-cols-2 gap-2">
+                            <Button variant="outline" className="w-full">
+                                <Phone className="w-4 h-4 mr-2" />
+                                Ligar
+                            </Button>
+                            <Button className="w-full bg-green-600 hover:bg-green-700">
+                                <MessageCircle className="w-4 h-4 mr-2" />
+                                WhatsApp
+                            </Button>
+                        </div>
+                    )}
+                </div>
+
+                {/* Footer Disclaimer */}
+                <div className="bg-muted/50 p-3 text-center text-[10px] text-muted-foreground uppercase tracking-widest font-medium">
+                    Visualização do Cliente
                 </div>
             </div>
         </div>

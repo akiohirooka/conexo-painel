@@ -9,14 +9,6 @@ export default function JobListingsPage() {
             <PageHeader
                 title="Minhas Vagas"
                 description="Gerencie suas vagas de emprego cadastradas."
-                action={
-                    <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm dark:bg-blue-600 dark:hover:bg-blue-700 dark:text-white">
-                        <Link href="/listings/new">
-                            <Plus className="mr-2 h-4 w-4" />
-                            Nova Vaga
-                        </Link>
-                    </Button>
-                }
             />
             <div className="rounded-xl border bg-card text-card-foreground shadow">
                 <div className="p-6">

@@ -1,6 +1,7 @@
 "use client"
 
-import { Bell, Search, User } from "lucide-react"
+import Link from "next/link"
+import { Bell, Plus, Search, User } from "lucide-react"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -35,6 +36,13 @@ export function Topbar() {
             </div>
 
             <div className="flex items-center gap-4">
+                <Button asChild size="sm" className="hidden sm:flex bg-blue-600 hover:bg-blue-700 text-white shadow-sm dark:bg-blue-600 dark:hover:bg-blue-700 dark:text-white">
+                    <Link href="/listings/new">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Novo Anúncio
+                    </Link>
+                </Button>
+
                 <Button variant="ghost" size="icon" className="text-muted-foreground" aria-label="Notificações">
                     <Bell className="h-5 w-5" />
                 </Button>

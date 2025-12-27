@@ -9,14 +9,6 @@ export default function BusinessListingsPage() {
             <PageHeader
                 title="Meus Negócios"
                 description="Gerencie seus negócios cadastrados."
-                action={
-                    <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm dark:bg-blue-600 dark:hover:bg-blue-700 dark:text-white">
-                        <Link href="/listings/new">
-                            <Plus className="mr-2 h-4 w-4" />
-                            Novo Negócio
-                        </Link>
-                    </Button>
-                }
             />
             <div className="rounded-xl border bg-card text-card-foreground shadow">
                 <div className="p-6">

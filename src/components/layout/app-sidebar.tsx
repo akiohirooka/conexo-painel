@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { site } from "@/lib/brand-config"
 import {
     Briefcase,
     Building2,
@@ -34,6 +35,7 @@ import {
     SidebarMenuSubButton,
     SidebarMenuSubItem,
     SidebarRail,
+    useSidebar,
 } from "@/components/ui/sidebar"
 import {
     Collapsible,
@@ -121,6 +123,7 @@ const navAdmin: NavItem[] = [
 ]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+    const { state } = useSidebar()
     return (
         <Sidebar collapsible="icon" {...props}>
             <SidebarHeader>
@@ -129,7 +132,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         <SidebarMenuButton size="lg" asChild>
                             <a href="#">
                                 <div className="flex w-full items-center justify-start">
-                                    <img src="/logo-conexo.png" alt="Conexo Logo" className="h-8 w-auto object-contain" />
+                                    {state === "collapsed" && site.logo.collapsed ? (
+                                        <img src={site.logo.collapsed} alt="Conexo" className="h-8 w-auto object-contain mx-auto" />
+                                    ) : (
+                                        <img src="/logo-conexo.png" alt="Conexo Logo" className="h-8 w-auto object-contain" />
+                                    )}
                                 </div>
                             </a>
                         </SidebarMenuButton>

@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 type LogoPaths = {
   light?: string
   dark?: string
+  collapsed?: string
 }
 
 type IconPaths = {
@@ -18,29 +19,58 @@ export type AnalyticsConfig = {
 }
 
 export const site = {
-  name: 'AI Coders Academy – Next.js SaaS Template',
-  shortName: 'AI Coders SaaS',
+  // INFORMAÇÕES BÁSICAS
+  name: 'Conexo - O maior hub de brasileiros no Japão',
+  shortName: 'Conexo',
   description:
-    'Template Next.js pronto para produção pela AI Coders Academy: autenticação, banco de dados, pagamentos e sistema de créditos incluídos.',
-  url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-  author: 'AI Coders Academy (Vinicius Lana)',
-  keywords: ['SaaS', 'Next.js', 'TypeScript', 'Clerk', 'Prisma', 'Tailwind CSS', 'AI Coders Academy', 'Template', 'Microsaas'],
+    'Conexo é um portal/marketplace criado para centralizar Negócios, Eventos e Vagas da comunidade brasileira e latino-americana no Japão, substituindo a dependência de grupos desorganizados no Facebook, Instagram e WhatsApp por uma plataforma moderna, organizada e fácil de navegar.',
+  url: process.env.NEXT_PUBLIC_APP_URL || 'https://painel.conexo.jp/',
+  author: 'Flowtic (Akio Hirooka)',
+
+  // PALAVRAS-CHAVE
+  keywords: [
+    'Conexo',
+    'Brasileiros no Japão',
+    'Latinos no Japão',
+    'Brasil no Japão',
+    'Marketplace',
+    'Portal',
+    'Negócios',
+    'Eventos',
+    'Empregos',
+    'Vagas',
+    'Comunidade',
+    'Japão',
+  ],
+
+  // OPEN GRAPH
   ogImage: '/og-image.png',
+
+  // LOGOS
   logo: {
-    light: '/logo-light.svg',
-    dark: '/logo-dark.svg',
+    light: '/images/conexo-full-color.png',
+    dark: '/images/conexo-full-color.png',
+    collapsed: '/conexo-collapsed.png',
   } as LogoPaths,
+
+  // ÍCONES
   icons: {
-    favicon: '/favicon.ico',
-    apple: '/apple-touch-icon.png',
-    shortcut: '/favicon-16x16.png',
+    favicon: '/images/conexo-logotype-color.ico',
+    apple: '/images/conexo-logotype-color.ico',
+    shortcut: '/images/conexo-logotype-color.ico',
   } as IconPaths,
+
+  // REDES SOCIAIS
   socials: {
-    twitter: '@aicodersacademy',
+    twitter: '', // adicione quando tiver o @ oficial
   },
+
+  // SUPORTE
   support: {
-    email: 'suporte@aicoders.academy',
+    email: 'contato@conexo.jp',
   },
+
+  // ANALYTICS (via .env)
   analytics: {
     gtmId: process.env.NEXT_PUBLIC_GTM_ID,
     gaMeasurementId: process.env.NEXT_PUBLIC_GA_ID,

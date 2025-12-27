@@ -10,7 +10,7 @@ export default function EventListingsPage() {
                 title="Meus Eventos"
                 description="Gerencie seus eventos cadastrados."
                 action={
-                    <Button asChild className="bg-conexo-blue hover:bg-conexo-blue/90 text-white">
+                    <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm dark:bg-blue-600 dark:hover:bg-blue-700 dark:text-white">
                         <Link href="/listings/new">
                             <Plus className="mr-2 h-4 w-4" />
                             Novo Evento

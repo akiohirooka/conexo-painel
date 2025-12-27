@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "./generated/client"
@@ -14,56 +8,65 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        String   @id @default(cuid())
-  clerkId   String   @unique
-  email     String?  @unique
-  name      String?
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  creditBalance      CreditBalance?
-  usageHistory       UsageHistory[]
-  storageObjects     StorageObject[]
-  subscriptionEvents SubscriptionEvent[]
-  
-  // Listings relations
-  businesses         Business[]
-  events             Event[]
-  jobs               Job[]
+/* ============================
+   CORE / BILLING TABLES
+   ============================ */
 
-  @@index([email])
-  @@index([name])
-  @@index([createdAt])
-  @@index([isActive])
-}
-
-
-// Workspace features and linkage to projects
 model Feature {
-  id          String     @id @default(cuid())
+  id          String   @id @default(cuid())
   workspaceId String
   name        String
   description String?
   tags        String[]
-
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([workspaceId])
 }
 
-model CreditBalance {
+model AdminSettings {
+  id           String   @id @default("singleton")
+  featureCosts Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Plan {
   id                String   @id @default(cuid())
-  userId            String   @unique
-  clerkUserId       String   @unique
-  creditsRemaining  Int      @default(100)  // Cached from Clerk
-  lastSyncedAt      DateTime @default(now())
+  clerkId           String?  @unique
+  clerkName         String?
+  name              String
+  credits           Int
+  active            Boolean  @default(true)
+  sortOrder         Int      @default(0)
+  currency          String?
+  priceMonthlyCents Int?
+  priceYearlyCents  Int?
+  description       String?
+  features          Json?
+  badge             String?
+  highlight         Boolean  @default(false)
+  ctaType           String?  @default("checkout")
+  ctaLabel          String?
+  ctaUrl            String?
+  billingSource     String   @default("clerk")
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  user              User     @relation(fields: [userId], references: [id])
-  usageHistory      UsageHistory[]
+  @@index([active])
+  @@index([sortOrder])
+}
+
+model CreditBalance {
+  id               String         @id @default(cuid())
+  clerkUserId      String         @unique
+  creditsRemaining Int            @default(100)
+  lastSyncedAt     DateTime       @default(now())
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  userId           String         @unique @db.Uuid
+  user             users          @relation(fields: [userId], references: [id])
+  usageHistory     UsageHistory[]
 
   @@index([userId])
   @@index([clerkUserId])
@@ -71,18 +74,16 @@ model CreditBalance {
   @@index([lastSyncedAt])
 }
 
-// Track individual usage events
 model UsageHistory {
-  id              String   @id @default(cuid())
-  userId          String
+  id              String        @id @default(cuid())
   creditBalanceId String
   operationType   OperationType
   creditsUsed     Int
   details         Json?
-  timestamp       DateTime @default(now())
-
-  user            User     @relation(fields: [userId], references: [id])
+  timestamp       DateTime      @default(now())
+  userId          String        @db.Uuid
   creditBalance   CreditBalance @relation(fields: [creditBalanceId], references: [id])
+  user            users         @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([creditBalanceId])
@@ -92,63 +93,20 @@ model UsageHistory {
   @@index([operationType, timestamp])
 }
 
-enum OperationType {
-  AI_TEXT_CHAT
-  AI_IMAGE_GENERATION
-}
-
-// Singleton row storing admin-configurable credit settings
-model AdminSettings {
-  id           String   @id @default("singleton")
-  featureCosts Json?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-}
-
-// Subscription plans sourced from Clerk and configured credits
-model Plan {
-  id        String   @id @default(cuid())
-  clerkId   String?  @unique // Clerk plan ID (e.g., cplan_*)
-  clerkName String?
-  name      String
-  credits   Int
-  active    Boolean  @default(true)
-  sortOrder Int      @default(0)
-  // Pricing synced from Clerk (amounts in cents)
-  currency           String?
-  priceMonthlyCents  Int?
-  priceYearlyCents   Int?
-  description        String?  @db.Text
-  features           Json?
-  badge              String?
-  highlight          Boolean  @default(false)
-  ctaType            String?  @default("checkout")
-  ctaLabel           String?
-  ctaUrl             String?
-  billingSource      String   @default("clerk")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([active])
-  @@index([sortOrder])
-}
-
-// File/object uploads tracked for admin management
 model StorageObject {
-  id           String   @id @default(cuid())
-  userId       String
-  clerkUserId  String
-  provider     String   @default("vercel_blob")
-  url          String
-  pathname     String
-  name         String
-  contentType  String?
-  size         Int
-  deletedAt    DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  user         User     @relation(fields: [userId], references: [id])
+  id          String    @id @default(cuid())
+  clerkUserId String
+  provider    String    @default("vercel_blob")
+  url         String
+  pathname    String
+  name        String
+  contentType String?
+  size        Int
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  userId      String    @db.Uuid
+  user        users     @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([createdAt])
@@ -158,129 +116,296 @@ model StorageObject {
   @@index([name])
 }
 
-// Track subscription lifecycle events for revenue analytics
 model SubscriptionEvent {
-  id           String   @id @default(cuid())
-  userId       String?
-  clerkUserId  String
-  planKey      String?
-  status       String
-  eventType    String
-  occurredAt   DateTime @default(now())
-  metadata     Json?
-  createdAt    DateTime @default(now())
-
-  user         User?    @relation(fields: [userId], references: [id])
+  id          String   @id @default(cuid())
+  clerkUserId String
+  planKey     String?
+  status      String
+  eventType   String
+  occurredAt  DateTime @default(now())
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  userId      String?  @db.Uuid
+  user        users?   @relation(fields: [userId], references: [id])
 
   @@index([userId, occurredAt])
+  @@index([clerkUserId, occurredAt])
 }
 
-// Listings Models
+/* ============================
+   CONEXO - CATEGORIES / BUSINESSES
+   ============================ */
 
-model Business {
-  id          String   @id @default(cuid())
-  userId      String
-  title       String
-  category    String
-  description String   @db.Text
-  
-  // Contact Info
-  whatsapp    String?
-  email       String?
-  instagram   String?
-  phone       String?
-  website     String?
-
-  // Location
-  zipCode     String?
-  address     String?
-  city        String?
-  state       String?
-
-  status      ListingStatus @default(PENDING)
-  views       Int           @default(0)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-
-  user        User     @relation(fields: [userId], references: [id])
-
-  @@index([userId])
-  @@index([status])
-  @@index([category])
+model business_categories {
+  id                     BigInt                   @id @default(autoincrement())
+  name                   String
+  slug                   String                   @unique
+  created_at             DateTime                 @default(now()) @db.Timestamptz(6)
+  is_active              Boolean                  @default(true)
+  business_subcategories business_subcategories[]
+  businesses             businesses[]
 }
 
-model Event {
-  id          String   @id @default(cuid())
-  userId      String
-  title       String
-  description String   @db.Text
+model business_subcategories {
+  id                  BigInt              @id @default(autoincrement())
+  category_id         BigInt
+  name                String
+  slug                String
+  created_at          DateTime            @default(now()) @db.Timestamptz(6)
+  business_categories business_categories @relation(fields: [category_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
-  startDate   DateTime
-  startTime   String?
-  isOnline    Boolean  @default(false)
-
-  // Location (if not online)
-  address     String?
-  city        String?
-  state       String?
-
-  // Tickets
-  price       Decimal?  @db.Decimal(10, 2)
-  ticketUrl   String?
-
-  status      ListingStatus @default(PENDING)
-  registrations Int       @default(0)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-
-  user        User     @relation(fields: [userId], references: [id])
-
-  @@index([userId])
-  @@index([status])
-  @@index([startDate])
+  @@unique([category_id, slug], map: "business_subcategories_unique")
+  @@index([category_id], map: "business_subcategories_category_idx")
 }
 
-model Job {
-  id          String   @id @default(cuid())
-  userId      String
-  title       String
-  company     String
-  workModel   WorkModel
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model businesses {
+  id                   BigInt              @id @default(autoincrement())
+  clerk_user_id        String
+  business_category_id BigInt
+  name                 String
+  slug                 String              @unique
+  site_url             String?
+  category             String?
+  subcategory          String[]
+  description          String
+  rating               Decimal?            @default(0) @db.Decimal(2, 1)
+  review_count         Int                 @default(0)
+  is_verified          Boolean             @default(false)
+  is_open              Boolean             @default(false)
+  cover_image_url      String?
+  created_at           DateTime            @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime            @default(now()) @db.Timestamptz(6)
+  business_categories  business_categories @relation(fields: [business_category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users                users               @relation(fields: [clerk_user_id], references: [clerk_user_id], onDelete: Cascade, onUpdate: NoAction)
 
-  // Location
-  city        String?
-  state       String?
-
-  // Salary
-  salaryAmount     Decimal? @db.Decimal(10, 2)
-  salaryPeriod     String?  // 'hour', 'month', 'year'
-  salaryNegotiable Boolean  @default(false)
-
-  // JSON arrays for simple lists are often easier than relations for this scale
-  requirements String[]
-  benefits     String[]
-
-  status      ListingStatus @default(PENDING)
-  applicants  Int           @default(0)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-
-  user        User     @relation(fields: [userId], references: [id])
-
-  @@index([userId])
-  @@index([status])
-  @@index([workModel])
+  @@index([business_category_id])
+  @@index([clerk_user_id])
 }
+
+model clerk_webhook_events {
+  id                    BigInt    @id @default(autoincrement())
+  clerk_event_id        String    @unique(map: "clerk_webhook_events_clerk_event_id_uq")
+  event_type            String?
+  clerk_user_id         String?
+  clerk_subscription_id String?
+  payload               Json
+  processed_at          DateTime? @db.Timestamptz(6)
+  processing_error      String?
+  created_at            DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@index([clerk_subscription_id])
+  @@index([clerk_user_id])
+  @@index([created_at])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model subscription_plans {
+  id                 BigInt               @id @default(autoincrement())
+  slug               String               @unique
+  name               String
+  description        String?
+  billing_interval   String               @default("monthly")
+  price_cents        Int
+  currency           String               @default("JPY")
+  trial_days         Int?
+  features           Json?
+  is_active          Boolean              @default(true)
+  created_at         DateTime             @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime             @default(now()) @db.Timestamptz(6)
+  user_subscriptions user_subscriptions[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model user_subscriptions {
+  id                    BigInt              @id @default(autoincrement())
+  clerk_user_id         String
+  plan_id               BigInt?
+  status                String              @default("trialing")
+  started_at            DateTime            @default(now()) @db.Timestamptz(6)
+  trial_ends_at         DateTime?           @db.Timestamptz(6)
+  current_period_start  DateTime?           @db.Timestamptz(6)
+  current_period_end    DateTime?           @db.Timestamptz(6)
+  cancel_at             DateTime?           @db.Timestamptz(6)
+  canceled_at           DateTime?           @db.Timestamptz(6)
+  ended_at              DateTime?           @db.Timestamptz(6)
+  clerk_customer_id     String?
+  clerk_subscription_id String?             @unique(map: "user_subscriptions_clerk_subscription_id_uq")
+  clerk_price_id        String?
+  metadata              Json?
+  created_at            DateTime            @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime            @default(now()) @db.Timestamptz(6)
+  users                 users               @relation(fields: [clerk_user_id], references: [clerk_user_id], onDelete: Cascade, onUpdate: NoAction)
+  subscription_plans    subscription_plans? @relation(fields: [plan_id], references: [id], onUpdate: NoAction)
+
+  @@index([clerk_user_id])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model users {
+  id                 String               @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  clerk_user_id      String               @unique
+  first_name         String?
+  last_name          String?
+  email              String
+  created_at         DateTime             @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime             @default(now()) @db.Timestamptz(6)
+  role               String               @default("user")
+  account_type       String               @default("individual")
+
+  creditBalance      CreditBalance?
+  storageObjects     StorageObject[]
+  subscriptionEvents SubscriptionEvent[]
+  usageHistory       UsageHistory[]
+  businesses         businesses[]
+  user_subscriptions user_subscriptions[]
+}
+
+/* ============================
+   ✅ REVIEWS / FAVORITES / SYSTEM NOTIFICATIONS
+   ============================ */
+
+model reviews {
+  id            BigInt         @id @default(autoincrement())
+  clerk_user_id String         @db.VarChar(255)
+  item_type     ReviewItemType
+  item_id       BigInt
+  rating        Int
+  comment       String?        @db.Text
+  is_visible    Boolean        @default(true)
+  created_at    DateTime       @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime       @default(now()) @db.Timestamptz(6)
+
+  @@unique([clerk_user_id, item_type, item_id], map: "reviews_unique_user_item")
+  @@index([item_type, item_id], map: "reviews_item_idx")
+  @@index([clerk_user_id], map: "reviews_user_idx")
+}
+
+model favorites {
+  id            BigInt         @id @default(autoincrement())
+  clerk_user_id String         @db.VarChar(255)
+  item_type     ReviewItemType
+  item_id       BigInt
+  created_at    DateTime       @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime       @default(now()) @db.Timestamptz(6)
+
+  @@unique([clerk_user_id, item_type, item_id], map: "favorites_unique_user_item")
+  @@index([clerk_user_id], map: "favorites_user_idx")
+}
+
+model system_notifications {
+  id         BigInt           @id @default(autoincrement())
+  title      String
+  message    String           @db.Text
+  type       NotificationType
+  is_active  Boolean          @default(true)
+  starts_at  DateTime?        @db.Timestamptz(6)
+  ends_at    DateTime?        @db.Timestamptz(6)
+  created_at DateTime         @default(now()) @db.Timestamptz(6)
+  updated_at DateTime         @default(now()) @db.Timestamptz(6)
+
+  system_notification_users system_notification_users[]
+}
+
+model system_notification_users {
+  id              BigInt               @id @default(autoincrement())
+  notification_id BigInt
+  clerk_user_id   String               @db.VarChar(255)
+  is_read         Boolean              @default(false)
+  is_hidden       Boolean              @default(false)
+  read_at         DateTime?            @db.Timestamptz(6)
+  created_at      DateTime             @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime             @default(now()) @db.Timestamptz(6)
+
+  system_notifications system_notifications @relation(fields: [notification_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([notification_id, clerk_user_id], map: "system_notification_users_unique")
+  @@index([clerk_user_id], map: "system_notification_users_user_idx")
+}
+
+/* ============================
+   ✅ NEW: EVENTS & JOBS (MVP)
+   ============================ */
 
 enum ListingStatus {
+  DRAFT
   PENDING
-  ACTIVE
+  APPROVED
   REJECTED
-  ARCHIVED
 }
 
-enum WorkModel {
-  ONSITE
-  HYBRID
-  REMOTE
+model events {
+  id              BigInt        @id @default(autoincrement())
+  clerk_user_id   String        @db.VarChar(255)
+  title           String
+  slug            String        @unique
+  description     String        @db.Text
+  cover_image_url String?
+  starts_at       DateTime      @db.Timestamptz(6)
+  ends_at         DateTime?     @db.Timestamptz(6)
+  price_amount    Int?
+  price_currency  String        @default("JPY")
+  ticket_url      String?
+  status          ListingStatus @default(DRAFT)
+  is_active       Boolean       @default(true)
+  published_at    DateTime?     @db.Timestamptz(6)
+  approved_by     String?       @db.VarChar(255)
+  approved_at     DateTime?     @db.Timestamptz(6)
+  rejected_reason String?       @db.Text
+  created_at      DateTime      @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime      @default(now()) @db.Timestamptz(6)
+
+  @@index([clerk_user_id])
+  @@index([status])
+  @@index([starts_at])
+}
+
+model jobs {
+  id              BigInt        @id @default(autoincrement())
+  clerk_user_id   String        @db.VarChar(255)
+  company_name    String?
+  title           String
+  slug            String        @unique
+  description     String        @db.Text
+  employment_type String?
+  category        String?
+  salary_amount   Int?
+  salary_currency String        @default("JPY")
+  salary_unit     String?
+  is_featured     Boolean       @default(false)
+  status          ListingStatus @default(DRAFT)
+  is_active       Boolean       @default(true)
+  published_at    DateTime?     @db.Timestamptz(6)
+  approved_by     String?       @db.VarChar(255)
+  approved_at     DateTime?     @db.Timestamptz(6)
+  rejected_reason String?       @db.Text
+  created_at      DateTime      @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime      @default(now()) @db.Timestamptz(6)
+
+  @@index([clerk_user_id])
+  @@index([status])
+  @@index([is_featured])
+}
+
+/* ============================
+   ENUMS
+   ============================ */
+
+enum OperationType {
+  AI_TEXT_CHAT
+  AI_IMAGE_GENERATION
+}
+
+enum ReviewItemType {
+  BUSINESS
+  EVENT
+  JOB
+}
+
+enum NotificationType {
+  INFO
+  WARNING
+  SUCCESS
+  ERROR
 }

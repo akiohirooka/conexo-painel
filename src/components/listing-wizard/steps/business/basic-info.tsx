@@ -17,14 +17,39 @@ const categories = [
     "Lazer",
 ]
 
+import { Switch } from '@/components/ui/switch'
+
 export function BusinessBasicStep() {
     const { control } = useFormContext()
 
     return (
         <div className="space-y-6">
-            <div className="space-y-2">
-                <h3 className="text-lg font-medium">Informações Básicas</h3>
-                <p className="text-sm text-muted-foreground">Conte um pouco sobre o seu negócio.</p>
+            <div className="flex items-center justify-between border-b pb-6">
+                <div className="space-y-1">
+                    <h3 className="text-lg font-medium">Informações Básicas</h3>
+                    <p className="text-sm text-muted-foreground">Conte um pouco sobre o seu negócio.</p>
+                </div>
+
+                <FormField
+                    control={control}
+                    name="isPublished"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 gap-4 bg-muted/20">
+                            <div className="space-y-0.5">
+                                <FormLabel className="text-base">Publicar Agora?</FormLabel>
+                                <FormDescription>
+                                    Se desmarcado, ficará como rascunho.
+                                </FormDescription>
+                            </div>
+                            <FormControl>
+                                <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                />
+                            </FormControl>
+                        </FormItem>
+                    )}
+                />
             </div>
 
             <FormField

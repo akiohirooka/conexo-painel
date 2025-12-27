@@ -13,7 +13,8 @@ import { z } from 'zod'
 import { BusinessBasicStep } from './steps/business/basic-info'
 import { BusinessLocationStep } from './steps/business/location-step'
 import { BusinessContactStep } from './steps/business/contact-step'
-import { BusinessExtrasStep } from './steps/business/extras-step'
+import { BusinessHoursStep } from './steps/business/hours-step' // New
+import { BusinessMediaStep } from './steps/business/media-step' // New
 
 // Event Steps
 import { EventBasicStep } from './steps/event/basic-info'
@@ -90,7 +91,8 @@ function StepContent() {
             case 0: return <BusinessBasicStep />
             case 1: return <BusinessLocationStep />
             case 2: return <BusinessContactStep />
-            case 3: return <BusinessExtrasStep />
+            case 3: return <BusinessHoursStep />
+            case 4: return <BusinessMediaStep />
             default: return null
         }
     }

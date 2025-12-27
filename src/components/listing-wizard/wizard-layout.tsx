@@ -1,14 +1,12 @@
 "use client"
 
+import { useRouter } from 'next/navigation'
 import React, { ReactNode } from 'react'
-import { useWizard } from './wizard-context'
+import { useWizard, ListingType } from './wizard-context'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
-import { ChevronLeft, ChevronRight, Save, Send } from 'lucide-react'
+import { Save, Send } from 'lucide-react'
 import { toast } from 'sonner'
-import { PreviewPanel } from './preview-panel'
 
 interface WizardLayoutProps {
     children: ReactNode
@@ -17,98 +15,124 @@ interface WizardLayoutProps {
 export function WizardLayout({ children }: WizardLayoutProps) {
     const {
         currentStep,
-        totalSteps,
-        prevStep,
-        nextStep,
+        setCurrentStep,
         listingType,
         form
     } = useWizard()
 
-    const isLastStep = currentStep === totalSteps - 1
-
-    const handleNext = async () => {
-        if (!form) return
-        const isValid = await form.trigger() // Validate current form state
-        if (isValid) {
-            nextStep()
-        } else {
-            toast.error('Por favor, preencha os campos obrigatórios.')
-        }
-    }
-
-    const handleSaveDraft = () => {
-        // console.log("Draft saved:", form?.getValues())
-        toast.success('Rascunho salvo com sucesso!')
-    }
+    const [isSubmitting, setIsSubmitting] = React.useState(false)
+    const router = useRouter()
 
     const handleSubmit = async () => {
         if (!form) return
+
+        setIsSubmitting(true)
         const isValid = await form.trigger()
+
         if (isValid) {
-            // console.log("Submitted:", form.getValues())
-            toast.success('Anúncio enviado para aprovação!')
+            try {
+                const data = form.getValues()
+
+                if (listingType === 'business') {
+                    const { createBusiness } = await import('@/actions/create-business')
+                    const result = await createBusiness(data)
+
+                    if (result.success) {
+                        toast.success('Anúncio criado com sucesso!')
+                        router.push('/dashboard/listings')
+                    } else {
+                        console.error(result.error)
+                        toast.error('Erro ao criar anúncio. Tente novamente.')
+                    }
+                } else {
+                    toast.info('Funcionalidade em desenvolvimento para este tipo.')
+                }
+            } catch (error) {
+                console.error(error)
+                toast.error('Ocorreu um erro inesperado.')
+            }
+        } else {
+            toast.error('Por favor, corrija os erros nos passos anteriores antes de enviar.')
+        }
+        setIsSubmitting(false)
+    }
+
+    if (!listingType) return <>{children}</> // Render Type Selection
+
+    // Step definitions for tabs
+    const stepsMap: Record<ListingType, string[]> = {
+        business: ['Básico', 'Localização', 'Contatos', 'Horários', 'Mídia'],
+        event: ['Básico', 'Data e Local', 'Contatos', 'Galeria'],
+        job: ['Básico', 'Detalhes', 'Descrição', 'Requisitos', 'Finalização']
+    }
+
+    const currentStepNames = listingType ? stepsMap[listingType] : []
+
+    const getTitle = () => {
+        switch (listingType) {
+            case 'business': return 'Novo Negócio'
+            case 'event': return 'Novo Evento'
+            case 'job': return 'Nova Vaga'
+            default: return 'Novo Anúncio'
         }
     }
 
-    if (!listingType) return <>{children}</> // Render Type Selection if no type
+    const handleTabClick = (index: number) => {
+        setCurrentStep(index)
+    }
 
     return (
-        <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
-            {/* LEFT: Form Area */}
-            <div className="flex-1 flex flex-col overflow-y-auto bg-background">
-                {/* Header / Steps */}
-                <div className="px-8 py-6 border-b flex items-center justify-between sticky top-0 bg-background z-10">
+        <div className="flex h-[calc(100vh-4rem)] flex-col bg-background">
+            {/* Header with Tabs */}
+            <div className="border-b bg-background sticky top-0 z-10">
+                <div className="px-8 py-6 flex items-center justify-between">
                     <div>
-                        <h2 className="text-xl font-bold capitalize">Novo Anúncio ({listingType})</h2>
+                        <h2 className="text-xl font-bold text-foreground">{getTitle()}</h2>
                         <p className="text-sm text-muted-foreground">
-                            Passo {currentStep + 1} de {totalSteps}
+                            Preencha as informações abaixo
                         </p>
                     </div>
                     <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={handleSaveDraft}>
-                            <Save className="w-4 h-4 mr-2" />
-                            Rascunho
+                        {/* Draft button removed as requested */}
+                        <Button
+                            onClick={handleSubmit}
+                            disabled={isSubmitting}
+                            className="bg-primary hover:bg-primary/90 text-white font-medium px-6"
+                        >
+                            {isSubmitting ? 'Salvando...' : 'Salvar e Publicar'}
+                            {!isSubmitting && <Send className="w-4 h-4 ml-2" />}
                         </Button>
                     </div>
                 </div>
 
-                {/* Form Content */}
-                <div className="p-8 max-w-2xl mx-auto w-full flex-1">
-                    {children}
-                </div>
+                {/* Tabs Navigation */}
+                <div className="px-8 flex gap-6 overflow-x-auto scrollbar-hide">
+                    {currentStepNames.map((name, index) => {
+                        const isActive = currentStep === index
 
-                {/* Footer Actions */}
-                <div className="p-4 border-t bg-background sticky bottom-0 flex justify-between items-center">
-                    <Button
-                        variant="ghost"
-                        onClick={prevStep}
-                        disabled={currentStep === 0}
-                    >
-                        <ChevronLeft className="w-4 h-4 mr-2" />
-                        Voltar
-                    </Button>
-
-                    {isLastStep ? (
-                        <Button onClick={handleSubmit} className="bg-green-600 hover:bg-green-700">
-                            Enviar
-                            <Send className="w-4 h-4 ml-2" />
-                        </Button>
-                    ) : (
-                        <Button onClick={handleNext}>
-                            Próximo
-                            <ChevronRight className="w-4 h-4 ml-2" />
-                        </Button>
-                    )}
+                        return (
+                            <button
+                                key={index}
+                                onClick={() => handleTabClick(index)}
+                                className={cn(
+                                    "pb-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap px-1",
+                                    isActive
+                                        ? "border-primary text-primary"
+                                        : "border-transparent text-muted-foreground hover:text-foreground hover:border-muted"
+                                )}
+                            >
+                                <span className="mr-2 text-xs opacity-70">{index + 1}.</span>
+                                {name}
+                            </button>
+                        )
+                    })}
                 </div>
             </div>
 
-            {/* RIGHT: Preview Area */}
-            <div className="w-[400px] border-l bg-muted/30 hidden xl:flex flex-col">
-                <div className="p-4 border-b bg-background/50">
-                    <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">Preview</h3>
-                </div>
-                <div className="flex-1 overflow-y-auto p-6">
-                    <PreviewPanel />
+            {/* Content Area */}
+            <div className="flex-1 overflow-y-auto p-8 bg-muted/5">
+                <div className="max-w-4xl mx-auto bg-card rounded-xl border shadow-sm p-8">
+                    {children}
                 </div>
             </div>
         </div>

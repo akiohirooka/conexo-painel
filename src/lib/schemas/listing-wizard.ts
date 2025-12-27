@@ -27,15 +27,29 @@ export const businessSchema = z.object({
     title: z.string().min(3, "O nome deve ter pelo menos 3 caracteres"),
     category: z.string().min(1, "Selecione uma categoria"),
     description: z.string().min(20, "A descrição deve ser mais detalhada"),
+    isPublished: z.boolean().default(false), // Toggle
     // Step 2: Location
     location: locationSchema,
-    // Step 3: Contact
-    contact: contactSchema,
-    // Step 4: Extras
-    amenities: z.array(z.string()).optional(),
-    openingHours: z.string().optional(),
-    // Step 5: Gallery
+    // Step 3: Contact (Dynamic)
+    contactsData: z.array(z.object({
+        type: z.enum(['whatsapp', 'phone', 'email', 'instagram', 'website', 'facebook', 'linkedin', 'other']),
+        value: z.string().min(1, "Preencha o contato"),
+        responsible: z.string().optional()
+    })).default([]),
+    // Step 4: Hours (Dynamic)
+    openingHoursData: z.array(z.object({
+        days: z.array(z.number()), // 0-6 (Sun-Sat)
+        start: z.string(),
+        end: z.string()
+    })).default([]),
+    // Step 5: Media
+    logo: z.string().optional(),
+    coverImage: z.string().optional(),
     gallery: gallerySchema,
+
+    // Legacy/Optional placeholders if strictly needed by UI before migration
+    amenities: z.array(z.string()).optional(), // Kept in Extras/Media?
+    contact: contactSchema.optional(), // Legacy support or just use dynamic
 })
 
 // --- Event Schemas ---

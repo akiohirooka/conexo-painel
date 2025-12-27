@@ -11,8 +11,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-zinc-900 text-white hover:bg-zinc-800 active:bg-zinc-700 \
-dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 dark:active:bg-zinc-300 \
+          "bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/95 \
 shadow-sm",
         destructive:
           "bg-red-600 text-white hover:bg-red-700 active:bg-red-800 \
@@ -49,7 +48,7 @@ focus-visible:ring-0 focus-visible:ring-offset-0",
 
 interface ButtonProps
   extends React.ComponentProps<"button">,
-    VariantProps<typeof buttonVariants> {
+  VariantProps<typeof buttonVariants> {
   asChild?: boolean
   isLoading?: boolean
   loadingText?: string

@@ -169,11 +169,32 @@ model businesses {
   category             String?
   subcategory          String[]
   description          String
+  // Location
+  address              String?
+  city                 String?
+  state                String?
+  zip_code             String?
+  latitude             Decimal?            @db.Decimal(10, 8)
+  longitude            Decimal?            @db.Decimal(11, 8)
+  // Contact (Legacy/Simple)
+  phone                String?
+  whatsapp             String?
+  email                String?
+  instagram            String?
+  // Contact (Rich)
+  contacts_data        Json?    // [{ type, value, responsible }]
+  // Extras
+  amenities            String[]
+  opening_hours        Json?    // Structured: [{ days: [], start, end }]
+  logo_url             String?
+  cover_image_url      String?  // Exists
+  gallery_images       String[]
+
   rating               Decimal?            @default(0) @db.Decimal(2, 1)
   review_count         Int                 @default(0)
   is_verified          Boolean             @default(false)
   is_open              Boolean             @default(false)
-  cover_image_url      String?
+  is_published         Boolean             @default(false) // Toggle
   created_at           DateTime            @default(now()) @db.Timestamptz(6)
   updated_at           DateTime            @default(now()) @db.Timestamptz(6)
   business_categories  business_categories @relation(fields: [business_category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -350,6 +371,9 @@ model events {
   status          ListingStatus @default(DRAFT)
   is_active       Boolean       @default(true)
   published_at    DateTime?     @db.Timestamptz(6)
+  
+  // Contacts
+  contacts_data   Json?
   approved_by     String?       @db.VarChar(255)
   approved_at     DateTime?     @db.Timestamptz(6)
   rejected_reason String?       @db.Text
@@ -377,6 +401,9 @@ model jobs {
   status          ListingStatus @default(DRAFT)
   is_active       Boolean       @default(true)
   published_at    DateTime?     @db.Timestamptz(6)
+
+  // Contacts
+  contacts_data   Json?
   approved_by     String?       @db.VarChar(255)
   approved_at     DateTime?     @db.Timestamptz(6)
   rejected_reason String?       @db.Text

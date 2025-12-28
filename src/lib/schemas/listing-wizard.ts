@@ -26,6 +26,7 @@ export const businessSchema = z.object({
     // Step 1: Basic
     title: z.string().min(3, "O nome deve ter pelo menos 3 caracteres"),
     category: z.string().min(1, "Selecione uma categoria"),
+    subcategory: z.array(z.string()).default([]),
     description: z.string().min(20, "A descrição deve ser mais detalhada"),
     isPublished: z.boolean().default(false), // Toggle
     // Step 2: Location

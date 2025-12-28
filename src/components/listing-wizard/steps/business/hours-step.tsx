@@ -62,7 +62,7 @@ export function BusinessHoursStep() {
                 </div>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
-                        <Button variant="outline" size="sm">
+                        <Button variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm">
                             <Plus className="w-4 h-4 mr-2" />
                             Adicionar Horário
                         </Button>

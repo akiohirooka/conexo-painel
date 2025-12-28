@@ -6,21 +6,45 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
-const categories = [
-    "Alimentação",
-    "Varejo",
-    "Saúde e Bem-estar",
-    "Tecnologia",
-    "Serviços",
-    "Educação",
-    "Automotivo",
-    "Lazer",
-]
+import { useEffect, useState } from 'react'
+import { getCategories, CategoryWithSubs } from '@/actions/get-categories'
+import { Badge } from '@/components/ui/badge'
+import { X, Check } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+
+
 
 import { Switch } from '@/components/ui/switch'
 
 export function BusinessBasicStep() {
-    const { control } = useFormContext()
+    const { control, watch, setValue } = useFormContext()
+    const [categories, setCategories] = useState<CategoryWithSubs[]>([])
+
+    // Watch category to show relevant subcategories
+    const selectedCategoryName = watch('category')
+    const selectedSubcategories = watch('subcategory') || [] // Ensure array
+
+    useEffect(() => {
+        const fetchCats = async () => {
+            const res = await getCategories()
+            if (res.success && res.data) {
+                setCategories(res.data)
+            }
+        }
+        fetchCats()
+    }, [])
+
+    const selectedCategoryObj = categories.find(c => c.name === selectedCategoryName)
+
+    const toggleSubcategory = (subName: string) => {
+        const current = selectedSubcategories as string[]
+        if (current.includes(subName)) {
+            setValue('subcategory', current.filter(s => s !== subName), { shouldDirty: true })
+        } else {
+            setValue('subcategory', [...current, subName], { shouldDirty: true })
+        }
+    }
 
     return (
         <div className="space-y-6">
@@ -29,27 +53,6 @@ export function BusinessBasicStep() {
                     <h3 className="text-lg font-medium">Informações Básicas</h3>
                     <p className="text-sm text-muted-foreground">Conte um pouco sobre o seu negócio.</p>
                 </div>
-
-                <FormField
-                    control={control}
-                    name="isPublished"
-                    render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 gap-4 bg-muted/20">
-                            <div className="space-y-0.5">
-                                <FormLabel className="text-base">Publicar Agora?</FormLabel>
-                                <FormDescription>
-                                    Se desmarcado, ficará como rascunho.
-                                </FormDescription>
-                            </div>
-                            <FormControl>
-                                <Switch
-                                    checked={field.value}
-                                    onCheckedChange={field.onChange}
-                                />
-                            </FormControl>
-                        </FormItem>
-                    )}
-                />
             </div>
 
             <FormField
@@ -71,17 +74,23 @@ export function BusinessBasicStep() {
                 name="category"
                 render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Categoria</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormLabel>Categoria <span className="text-destructive">*</span></FormLabel>
+                        <Select
+                            onValueChange={(val) => {
+                                field.onChange(val)
+                                setValue('subcategory', []) // Reset subs on cat change
+                            }}
+                            defaultValue={field.value}
+                        >
                             <FormControl>
-                                <SelectTrigger>
+                                <SelectTrigger className="bg-background">
                                     <SelectValue placeholder="Selecione uma categoria" />
                                 </SelectTrigger>
                             </FormControl>
-                            <SelectContent>
+                            <SelectContent className="bg-popover text-popover-foreground">
                                 {categories.map((cat) => (
-                                    <SelectItem key={cat} value={cat}>
-                                        {cat}
+                                    <SelectItem key={cat.id} value={cat.name}>
+                                        {cat.name}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -90,6 +99,33 @@ export function BusinessBasicStep() {
                     </FormItem>
                 )}
             />
+
+            {selectedCategoryObj && selectedCategoryObj.subcategories.length > 0 && (
+                <FormItem className="space-y-3">
+                    <FormLabel>Subcategorias</FormLabel>
+                    <div className="flex flex-wrap gap-2">
+                        {selectedCategoryObj.subcategories.map((sub) => {
+                            const isSelected = (selectedSubcategories as string[]).includes(sub.name)
+                            return (
+                                <div
+                                    key={sub.id}
+                                    onClick={() => toggleSubcategory(sub.name)}
+                                    className={cn(
+                                        "cursor-pointer rounded-full px-4 py-1.5 text-sm font-medium transition-all border select-none flex items-center gap-2",
+                                        isSelected
+                                            ? "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
+                                            : "bg-background text-muted-foreground border-input hover:border-primary/50 hover:text-foreground"
+                                    )}
+                                >
+                                    {sub.name}
+                                    {isSelected && <Check className="h-3 w-3" />}
+                                </div>
+                            )
+                        })}
+                    </div>
+                    <FormDescription>Selecione uma ou mais opções.</FormDescription>
+                </FormItem>
+            )}
 
             <FormField
                 control={control}

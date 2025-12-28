@@ -5,8 +5,9 @@ import React, { ReactNode } from 'react'
 import { useWizard, ListingType } from './wizard-context'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { Save, Send } from 'lucide-react'
+import { Save, Send, Globe } from 'lucide-react'
 import { toast } from 'sonner'
+import { Switch } from '@/components/ui/switch'
 
 interface WizardLayoutProps {
     children: ReactNode
@@ -86,20 +87,35 @@ export function WizardLayout({ children }: WizardLayoutProps) {
             {/* Header with Tabs */}
             <div className="border-b bg-background sticky top-0 z-10">
                 <div className="px-8 py-6 flex items-center justify-between">
-                    <div>
-                        <h2 className="text-xl font-bold text-foreground">{getTitle()}</h2>
-                        <p className="text-sm text-muted-foreground">
-                            Preencha as informações abaixo
-                        </p>
+                    <div className="space-y-4">
+                        <div className="space-y-1">
+                            <h2 className="text-xl font-bold text-foreground">{getTitle()}</h2>
+                            <p className="text-sm text-muted-foreground">
+                                Preencha as informações abaixo
+                            </p>
+                        </div>
+
+                        {/* Publish Toggle - Only for Business for now or generic check */}
+                        {listingType === 'business' && form && (
+                            <div className="flex items-center gap-2 mt-2">
+                                <Switch
+                                    checked={form.watch('isPublished')}
+                                    onCheckedChange={(val) => form.setValue('isPublished', val, { shouldDirty: true })}
+                                    className="data-[state=checked]:bg-primary"
+                                />
+                                <span className="text-sm font-bold text-foreground">
+                                    Publicar
+                                </span>
+                            </div>
+                        )}
                     </div>
                     <div className="flex gap-2">
-                        {/* Draft button removed as requested */}
                         <Button
                             onClick={handleSubmit}
                             disabled={isSubmitting}
-                            className="bg-primary hover:bg-primary/90 text-white font-medium px-6"
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 shadow-sm"
                         >
-                            {isSubmitting ? 'Salvando...' : 'Salvar e Publicar'}
+                            {isSubmitting ? 'Salvando...' : 'Salvar'}
                             {!isSubmitting && <Send className="w-4 h-4 ml-2" />}
                         </Button>
                     </div>

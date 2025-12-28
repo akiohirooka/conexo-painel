@@ -68,13 +68,67 @@ function StepContent() {
         : listingType === 'event' ? eventSchema
             : jobSchema
 
+    const getDefaultValues = (type: string) => {
+        // Cast type to any to satisfy Zod literal expectations during initialization
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const common = { type: type as any }
+
+        if (type === 'business') {
+            return {
+                ...common,
+                title: "",
+                category: "",
+                description: "",
+                isPublished: false,
+                location: { address: "", city: "", state: "", zipCode: "" },
+                contactsData: [],
+                openingHoursData: [],
+                amenities: [],
+                gallery: { images: [] },
+                // Legacy fields just in case
+                contact: { phone: "", whatsapp: "", email: "", website: "", instagram: "" }
+            }
+        }
+
+        if (type === 'event') {
+            return {
+                ...common,
+                title: "",
+                description: "",
+                category: "",
+                startDate: "",
+                endDate: "",
+                startTime: "",
+                location: { address: "", city: "", state: "", zipCode: "" },
+                isOnline: false,
+                price: 0,
+                organizer: "",
+                contact: { phone: "", whatsapp: "", email: "", website: "", instagram: "" },
+                gallery: { images: [] }
+            }
+        }
+
+        if (type === 'job') {
+            return {
+                ...common,
+                title: "",
+                company: "",
+                workModel: "onsite",
+                description: "",
+                requirements: [],
+                salary: { amount: 0, period: "month", currency: "BRL", negotiable: false },
+                location: { city: "", state: "" }
+            }
+        }
+
+        return common
+    }
+
     const form = useForm({
         resolver: zodResolver(schema),
         mode: "onChange",
-        defaultValues: {
-            type: listingType,
-            // Add other defaults if needed
-        }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        defaultValues: getDefaultValues(listingType || 'business') as any
     })
 
     // Register form in context for Layout to access (for trigger validation)

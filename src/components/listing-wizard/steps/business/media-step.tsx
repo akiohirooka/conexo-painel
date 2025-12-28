@@ -3,7 +3,7 @@
 import { useFormContext } from 'react-hook-form'
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Image as ImageIcon, Upload } from 'lucide-react'
+import { Image as ImageIcon, Upload, Plus } from 'lucide-react'
 
 // Placeholder for a real file upload component
 const ImageUploadPlaceholder = ({ label, value, onChange }: { label: string, value?: string, onChange: (val: string) => void }) => (
@@ -104,4 +104,3 @@ export function BusinessMediaStep() {
         </div>
     )
 }
-import { Plus } from 'lucide-react'

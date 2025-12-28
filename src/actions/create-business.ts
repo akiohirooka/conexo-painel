@@ -47,7 +47,8 @@ export async function createBusiness(data: z.infer<typeof businessSchema>) {
 
                 // Relations
                 business_category_id: category.id,
-                category: validatedData.category, // Storing string name too as per schema legacy?
+                category: validatedData.category,
+                subcategory: validatedData.subcategory || [],
 
                 // Location
                 address: validatedData.location.address,
@@ -55,21 +56,25 @@ export async function createBusiness(data: z.infer<typeof businessSchema>) {
                 state: validatedData.location.state,
                 zip_code: validatedData.location.zipCode,
 
-                // Contact
-                phone: validatedData.contact.phone,
-                whatsapp: validatedData.contact.whatsapp,
-                email: validatedData.contact.email,
-                instagram: validatedData.contact.instagram,
-                site_url: validatedData.contact.website,
+                // Contact (Legacy - populate first found if available for index/search)
+                phone: validatedData.contactsData.find(c => c.type === 'phone' || c.type === 'whatsapp')?.value,
+                email: validatedData.contactsData.find(c => c.type === 'email')?.value,
+                whatsapp: validatedData.contactsData.find(c => c.type === 'whatsapp')?.value,
+                instagram: validatedData.contactsData.find(c => c.type === 'instagram')?.value,
+                site_url: validatedData.contactsData.find(c => c.type === 'website')?.value,
+
+                // Contact (Rich)
+                contacts_data: validatedData.contactsData,
 
                 // Extras
                 amenities: validatedData.amenities || [],
-                opening_hours: validatedData.openingHours,
-                gallery_images: validatedData.gallery.images || [], // Schema expects string[]
+                opening_hours: validatedData.openingHoursData,
+                gallery_images: validatedData.gallery.images || [],
 
                 // Defaults
                 is_verified: false,
-                is_open: false
+                is_open: false,
+                is_published: validatedData.isPublished
             }
         })
 

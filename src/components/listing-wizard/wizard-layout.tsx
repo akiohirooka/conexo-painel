@@ -6,8 +6,9 @@ import { useWizard, ListingType } from './wizard-context'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { Save, Send, Globe } from 'lucide-react'
-import { toast } from 'sonner'
+import { toast } from '@/hooks/use-toast'
 import { Switch } from '@/components/ui/switch'
+import { Controller } from 'react-hook-form'
 
 interface WizardLayoutProps {
     children: ReactNode
@@ -98,10 +99,23 @@ export function WizardLayout({ children }: WizardLayoutProps) {
                         {/* Publish Toggle - Only for Business for now or generic check */}
                         {listingType === 'business' && form && (
                             <div className="flex items-center gap-2 mt-2">
-                                <Switch
-                                    checked={form.watch('isPublished')}
-                                    onCheckedChange={(val) => form.setValue('isPublished', val, { shouldDirty: true })}
-                                    className="data-[state=checked]:bg-primary"
+                                <Controller
+                                    control={form.control}
+                                    name="isPublished"
+                                    defaultValue={false}
+                                    render={({ field }) => (
+                                        <Switch
+                                            checked={Boolean(field.value)}
+                                            onCheckedChange={(val) => {
+                                                field.onChange(val)
+                                                if (val) {
+                                                    toast({ title: 'Publicação ativada', variant: 'success' })
+                                                } else {
+                                                    toast({ title: 'Publicação desativada', variant: 'danger' })
+                                                }
+                                            }}
+                                        />
+                                    )}
                                 />
                                 <span className="text-sm font-bold text-foreground">
                                     Publicar

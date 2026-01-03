@@ -101,7 +101,7 @@ export async function createBusiness(data: z.infer<typeof businessSchema>) {
                 site_url: validatedData.siteUrl || validatedData.contactsData.find(c => c.type === 'website')?.value,
 
                 // Contact (Rich)
-                contacts_data: validatedData.contactsData,
+                contacts_data: validatedData.contactsData.filter(c => c.type !== 'website'),
 
                 // Extras
                 amenities: validatedData.amenities || [],

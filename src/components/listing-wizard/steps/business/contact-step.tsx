@@ -7,29 +7,21 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Mail, Phone, Instagram, Globe, MessageCircle, Plus, Trash2, User, Linkedin, Facebook, Share2 } from 'lucide-react'
+import { Mail, Phone, Instagram, Globe, MessageCircle, Plus, Trash2, User, Linkedin, Facebook, Share2, Info, AlertTriangle } from 'lucide-react'
 import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
+import { EmptyState } from '@/components/ui-conexo/empty-state'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 const contactTypes = [
     { value: "whatsapp", label: "WhatsApp", icon: MessageCircle },
-    { value: "email", label: "Email", icon: Mail },
+    { value: "email", label: "E-mail", icon: Mail },
     { value: "phone", label: "Telefone", icon: Phone },
     { value: "instagram", label: "Instagram", icon: Instagram },
-    { value: "website", label: "Site", icon: Globe },
     { value: "facebook", label: "Facebook", icon: Facebook },
     { value: "linkedin", label: "LinkedIn", icon: Linkedin },
     { value: "other", label: "Outro", icon: Share2 },
 ]
-
-const HTTPS_PREFIX = "https://"
-
-const normalizeWebsiteValue = (value: string) => {
-    const trimmed = value.trim()
-    if (!trimmed || trimmed === HTTPS_PREFIX) return ""
-    if (/^https?:\/\//i.test(trimmed)) return trimmed
-    return `${HTTPS_PREFIX}${trimmed.replace(/^\/\//, '')}`
-}
 
 export function BusinessContactStep() {
     const { control } = useFormContext()
@@ -41,12 +33,13 @@ export function BusinessContactStep() {
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [newContact, setNewContact] = useState({ type: "", value: "", responsible: "" })
 
+    // Filter out website from table display since it's handled in the main tab
+    const filteredFields = fields.filter((field: any) => field.type !== 'website')
+
     const handleAdd = () => {
         if (!newContact.type || !newContact.value) return
 
-        const value = newContact.type === "website"
-            ? normalizeWebsiteValue(newContact.value)
-            : newContact.value.trim()
+        const value = newContact.value.trim()
 
         if (!value) return
 
@@ -61,6 +54,30 @@ export function BusinessContactStep() {
         return <Icon className="w-4 h-4" />
     }
 
+    const getContactLabel = (type: string) => {
+        switch (type) {
+            case 'email': return 'E-mail'
+            case 'whatsapp': return 'Número do WhatsApp'
+            case 'phone': return 'Número de Telefone'
+            case 'instagram': return 'Perfil do Instagram'
+            case 'facebook': return 'Perfil do Facebook'
+            case 'linkedin': return 'Perfil do LinkedIn'
+            default: return 'Contato (Valor)'
+        }
+    }
+
+    const getContactPlaceholder = (type: string) => {
+        switch (type) {
+            case 'email': return 'Escreva seu e-mail'
+            case 'whatsapp': return 'Escreva seu número de WhatsApp (Ex: 11 99999-9999)'
+            case 'phone': return 'Escreva seu número de telefone (Ex: 11 3333-3333)'
+            case 'instagram': return 'Escreva seu perfil do Instagram (Ex: @seu_perfil)'
+            case 'facebook': return 'Escreva seu perfil do Facebook'
+            case 'linkedin': return 'Escreva seu perfil do LinkedIn'
+            default: return 'Preencha o contato'
+        }
+    }
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -70,12 +87,12 @@ export function BusinessContactStep() {
                 </div>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
-                        <Button variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm">
-                            <Plus className="w-4 h-4 mr-2" />
-                            Adicionar Contato
+                        <Button variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm flex items-center justify-center gap-2">
+                            <Plus className="w-4 h-4" />
+                            Contato
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="bg-white text-foreground dark:bg-neutral-900 dark:text-neutral-50">
+                    <DialogContent className="bg-white text-black sm:max-w-[425px]">
                         <DialogHeader>
                             <DialogTitle>Novo Contato</DialogTitle>
                             <DialogDescription>
@@ -91,7 +108,7 @@ export function BusinessContactStep() {
                                         setNewContact((prev) => ({
                                             ...prev,
                                             type: val,
-                                            value: val === "website" && !prev.value ? HTTPS_PREFIX : prev.value
+                                            value: prev.value
                                         }))
                                     }}
                                 >
@@ -111,33 +128,16 @@ export function BusinessContactStep() {
                                 </Select>
                             </div>
                             <div className="grid gap-2">
-                                <FormLabel>Contato (Valor)</FormLabel>
+                                <FormLabel>{getContactLabel(newContact.type)}</FormLabel>
                                 <Input
-                                    placeholder={newContact.type === "website"
-                                        ? "https://www.seusite.com"
-                                        : "Ex: (11) 99999-9999 ou user@email.com"}
+                                    placeholder={getContactPlaceholder(newContact.type)}
                                     value={newContact.value}
-                                    onFocus={(e) => {
-                                        if (newContact.type === "website" && !newContact.value) {
-                                            setNewContact((prev) => ({ ...prev, value: HTTPS_PREFIX }))
-                                            requestAnimationFrame(() => {
-                                                e.target.setSelectionRange(HTTPS_PREFIX.length, HTTPS_PREFIX.length)
-                                            })
-                                        }
-                                    }}
                                     onChange={(e) => setNewContact({ ...newContact, value: e.target.value })}
                                     onBlur={(e) => {
-                                        if (newContact.type === "website") {
-                                            setNewContact((prev) => ({
-                                                ...prev,
-                                                value: normalizeWebsiteValue(e.target.value)
-                                            }))
-                                        } else {
-                                            setNewContact((prev) => ({
-                                                ...prev,
-                                                value: e.target.value.trim()
-                                            }))
-                                        }
+                                        setNewContact((prev) => ({
+                                            ...prev,
+                                            value: e.target.value.trim()
+                                        }))
                                     }}
                                 />
                             </div>
@@ -151,7 +151,7 @@ export function BusinessContactStep() {
                             </div>
                         </div>
                         <DialogFooter>
-                            <Button onClick={handleAdd} disabled={!newContact.type || !newContact.value}>
+                            <Button onClick={handleAdd} disabled={!newContact.type || !newContact.value} className="bg-blue-600 hover:bg-blue-700 text-white">
                                 Adicionar
                             </Button>
                         </DialogFooter>
@@ -159,7 +159,14 @@ export function BusinessContactStep() {
                 </Dialog>
             </div>
 
-            {fields.length > 0 ? (
+            <Alert className="bg-yellow-50 border-yellow-200 text-yellow-800 mb-6">
+                <AlertTriangle className="w-4 h-4 text-yellow-800" />
+                <AlertDescription>
+                    Importante: Não se esqueça de clicar em <strong>Salvar</strong> no final da página para confirmar a inclusão dos contatos.
+                </AlertDescription>
+            </Alert>
+
+            {filteredFields.length > 0 ? (
                 <div className="border rounded-md">
                     <Table>
                         <TableHeader>
@@ -171,14 +178,16 @@ export function BusinessContactStep() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {fields.map((field, index) => (
+                            {filteredFields.map((field, index) => (
                                 <TableRow key={field.id}>
-                                    <TableCell className="font-medium flex items-center gap-2">
-                                        {getIcon((field as any).type)}
-                                        {contactTypes.find(t => t.value === (field as any).type)?.label || (field as any).type}
+                                    <TableCell className="font-medium align-middle">
+                                        <div className="flex items-center gap-2">
+                                            {getIcon((field as any).type)}
+                                            {contactTypes.find(t => t.value === (field as any).type)?.label || (field as any).type}
+                                        </div>
                                     </TableCell>
-                                    <TableCell>{(field as any).value}</TableCell>
-                                    <TableCell>
+                                    <TableCell className="align-middle">{(field as any).value}</TableCell>
+                                    <TableCell className="align-middle">
                                         {(field as any).responsible ? (
                                             <Badge variant="secondary" className="font-normal">
                                                 <User className="w-3 h-3 mr-1" />
@@ -188,7 +197,7 @@ export function BusinessContactStep() {
                                             <span className="text-muted-foreground">-</span>
                                         )}
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell className="align-middle">
                                         <Button
                                             variant="ghost"
                                             size="sm"
@@ -204,12 +213,11 @@ export function BusinessContactStep() {
                     </Table>
                 </div>
             ) : (
-                <div className="flex flex-col items-center justify-center py-10 border border-dashed rounded-lg bg-muted/20 text-muted-foreground">
-                    <div className="p-3 bg-background rounded-full mb-2">
-                        <Share2 className="w-6 h-6 opacity-50" />
-                    </div>
-                    <p>Nenhum contato adicionado.</p>
-                </div>
+                <EmptyState
+                    title="Nenhum contato adicionado"
+                    description="Adicione os canais de contato do seu negócio para que os clientes possam falar com você."
+                    icon={Share2}
+                />
             )}
         </div>
     )

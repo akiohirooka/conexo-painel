@@ -6,8 +6,10 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Plus, Trash2, Clock } from 'lucide-react'
+import { Plus, Trash2, Clock, AlertTriangle } from 'lucide-react'
 import { useState } from 'react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { EmptyState } from '@/components/ui-conexo/empty-state'
 
 const daysOfWeek = [
     { id: 0, label: "Domingo" },
@@ -62,12 +64,12 @@ export function BusinessHoursStep() {
                 </div>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
-                        <Button variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm">
-                            <Plus className="w-4 h-4 mr-2" />
-                            Adicionar Horário
+                        <Button variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm flex items-center justify-center gap-2">
+                            <Plus className="w-4 h-4" />
+                            Horário
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="bg-white text-foreground dark:bg-neutral-900 dark:text-neutral-50">
+                    <DialogContent className="bg-white text-black sm:max-w-[500px]">
                         <DialogHeader>
                             <DialogTitle>Novo Turno</DialogTitle>
                             <DialogDescription>
@@ -78,9 +80,9 @@ export function BusinessHoursStep() {
                         <div className="space-y-4 py-4">
                             <div className="space-y-2">
                                 <FormLabel>Dias da Semana</FormLabel>
-                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                <div className="flex flex-col gap-3">
                                     {daysOfWeek.map((day) => (
-                                        <div key={day.id} className="flex items-center space-x-2 border rounded-md p-2">
+                                        <div key={day.id} className="flex items-center space-x-2">
                                             <Checkbox
                                                 id={`day-${day.id}`}
                                                 checked={selectedDays.includes(day.id)}
@@ -118,13 +120,20 @@ export function BusinessHoursStep() {
                         </div>
 
                         <DialogFooter>
-                            <Button onClick={handleAdd} disabled={selectedDays.length === 0}>
+                            <Button onClick={handleAdd} disabled={selectedDays.length === 0} className="bg-blue-600 hover:bg-blue-700 text-white">
                                 Adicionar
                             </Button>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
             </div>
+
+            <Alert className="bg-yellow-50 border-yellow-200 text-yellow-800 mb-6">
+                <AlertTriangle className="w-4 h-4 text-yellow-800" />
+                <AlertDescription>
+                    Importante: Não se esqueça de clicar em <strong>Salvar</strong> no final da página para confirmar a inclusão dos horários.
+                </AlertDescription>
+            </Alert>
 
             {fields.length > 0 ? (
                 <div className="space-y-3">
@@ -151,10 +160,11 @@ export function BusinessHoursStep() {
                     ))}
                 </div>
             ) : (
-                <div className="flex flex-col items-center justify-center py-10 border border-dashed rounded-lg bg-muted/20 text-muted-foreground">
-                    <Clock className="w-8 h-8 mb-2 opacity-50" />
-                    <p>Nenhum horário cadastrado.</p>
-                </div>
+                <EmptyState
+                    title="Nenhum horário cadastrado"
+                    description="Adicione os turnos de funcionamento do seu negócio."
+                    icon={Clock}
+                />
             )}
         </div>
     )

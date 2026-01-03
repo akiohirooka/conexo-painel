@@ -20,10 +20,10 @@ const Switch = React.forwardRef<
   >
     <SwitchPrimitives.Thumb
       className={cn(
-        "pointer-events-none group flex items-center justify-center h-4 w-4 rounded-full bg-white shadow-md ring-0 transition-transform duration-200 ease-out data-[state=checked]:translate-x-6 data-[state=unchecked]:translate-x-0 dark:bg-zinc-900"
+        "pointer-events-none group flex items-center justify-center h-4 w-4 rounded-full bg-white shadow-md ring-0 transition-transform duration-200 ease-out data-[state=checked]:translate-x-6 data-[state=unchecked]:translate-x-0"
       )}
     >
-      <Check className="h-3 w-3 text-white opacity-0 transition-opacity duration-200 group-data-[state=checked]:opacity-100" />
+      <Check className="h-3 w-3 text-blue-500 opacity-0 transition-opacity duration-200 group-data-[state=checked]:opacity-100" />
     </SwitchPrimitives.Thumb>
   </SwitchPrimitives.Root>
 ))

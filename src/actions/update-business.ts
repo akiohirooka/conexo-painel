@@ -96,7 +96,7 @@ export async function updateBusiness(data: z.infer<typeof updateBusinessSchema>)
                 whatsapp: validatedData.contactsData.find(c => c.type === 'whatsapp')?.value,
                 instagram: validatedData.contactsData.find(c => c.type === 'instagram')?.value,
                 site_url: validatedData.siteUrl || validatedData.contactsData.find(c => c.type === 'website')?.value,
-                contacts_data: validatedData.contactsData,
+                contacts_data: validatedData.contactsData.filter(c => c.type !== 'website'),
                 amenities: validatedData.amenities || [],
                 opening_hours: validatedData.openingHoursData,
                 gallery_images: validatedData.gallery.images || [],

@@ -36,7 +36,6 @@ export async function getBusiness(id: string) {
             business.whatsapp ? { type: "whatsapp", value: business.whatsapp } : null,
             business.email ? { type: "email", value: business.email } : null,
             business.instagram ? { type: "instagram", value: business.instagram } : null,
-            business.site_url ? { type: "website", value: business.site_url } : null,
         ].filter(Boolean) as { type: string, value: string }[]
 
         const data = {

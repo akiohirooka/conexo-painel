@@ -37,7 +37,7 @@ export const columns: Column<BusinessColumn>[] = [
         className: "w-[300px]",
         render: (item) => (
             <div className="flex items-center gap-3">
-                <div className="relative h-10 w-10 overflow-hidden rounded-lg bg-muted">
+                <div className="relative h-9 w-9 overflow-hidden rounded-lg bg-muted">
                     {item.logo_url ? (
                         <Image
                             src={item.logo_url}
@@ -51,11 +51,8 @@ export const columns: Column<BusinessColumn>[] = [
                         </div>
                     )}
                 </div>
-                <div className="flex flex-col">
-                    <span className="font-medium text-foreground">{item.name}</span>
-                    <span className="text-xs text-muted-foreground">
-                        {item.city && item.state ? `${item.city}, ${item.state}` : "Sem localização"}
-                    </span>
+                <div className="flex flex-col justify-center">
+                    <span className="font-semibold text-foreground text-base leading-tight">{item.name}</span>
                 </div>
             </div>
         )
@@ -64,7 +61,7 @@ export const columns: Column<BusinessColumn>[] = [
         key: "category",
         header: "Categoria",
         render: (item) => (
-            <span className="inline-flex items-center rounded-md bg-secondary px-2 py-1 text-xs font-medium ring-1 ring-inset ring-gray-500/10">
+            <span className="inline-flex items-center rounded-md px-3 py-1 text-sm font-medium bg-blue-50 text-blue-700 border border-blue-100">
                 {item.category || "Sem categoria"}
             </span>
         )
@@ -74,7 +71,7 @@ export const columns: Column<BusinessColumn>[] = [
         header: "Status",
         render: (item) => {
             const status = item.is_published ? "published" : "draft"
-            return <StatusBadge status={status} />
+            return <StatusBadge status={status} className="px-3 py-1 text-sm font-semibold" />
         }
     },
     {
@@ -108,7 +105,7 @@ export const columns: Column<BusinessColumn>[] = [
                         <span className="sr-only">Ações</span>
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" className="bg-white shadow-lg border">
                     <DropdownMenuLabel>Ações</DropdownMenuLabel>
                     <DropdownMenuItem asChild>
                         <Link href={`/listings/${item.id}/edit`}>

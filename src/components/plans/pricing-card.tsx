@@ -33,10 +33,10 @@ export function PricingCard({ tier, billingPeriod, renderAction }: PricingCardPr
           'rounded-3xl transition-all duration-300',
           'flex flex-col',
           isFeatured
-            ? 'bg-gradient-to-b from-zinc-100/90 via-white to-transparent dark:from-zinc-300/20 dark:via-zinc-900/60'
-            : 'bg-white dark:bg-zinc-800/50',
+            ? 'bg-gradient-to-b from-primary/5 via-background to-transparent border-primary/20 shadow-md'
+            : 'bg-background hover:bg-muted/50',
           'border',
-        
+
         )}
       >
         {(tier.badge || isFeatured) && (

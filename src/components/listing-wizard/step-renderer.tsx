@@ -38,7 +38,7 @@ const PlaceholderStep = ({ name }: { name: string }) => (
 )
 
 export function StepRenderer() {
-    const { listingType, currentStep, setForm } = useWizard()
+    const { listingType, initialData } = useWizard()
 
     // Initialize form based on type
     // Note: In a real app we might want to lift this instantiation up or memoize it better 
@@ -57,10 +57,10 @@ export function StepRenderer() {
         return <TypeSelection />
     }
 
-    return <StepContent />
+    return <StepContent initialData={initialData} />
 }
 
-function StepContent() {
+function StepContent({ initialData }: { initialData?: Record<string, unknown> | null }) {
     const { listingType, currentStep, setForm } = useWizard()
 
     // Choose schema
@@ -79,6 +79,7 @@ function StepContent() {
                 title: "",
                 category: "",
                 description: "",
+                siteUrl: "",
                 isPublished: false,
                 location: { address: "", city: "", state: "", zipCode: "" },
                 contactsData: [],
@@ -124,11 +125,30 @@ function StepContent() {
         return common
     }
 
+    const baseDefaults = React.useMemo(
+        () => getDefaultValues(listingType || 'business'),
+        [listingType]
+    )
+
+    const mergedDefaults = React.useMemo(() => {
+        if (!initialData) return baseDefaults
+        if (listingType === 'business') {
+            return {
+                ...baseDefaults,
+                ...initialData,
+                location: { ...baseDefaults.location, ...(initialData as any).location },
+                gallery: { ...baseDefaults.gallery, ...(initialData as any).gallery },
+                contact: { ...baseDefaults.contact, ...(initialData as any).contact },
+            }
+        }
+        return { ...baseDefaults, ...initialData }
+    }, [baseDefaults, initialData, listingType])
+
     const form = useForm({
         resolver: zodResolver(schema),
         mode: "onChange",
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        defaultValues: getDefaultValues(listingType || 'business') as any
+        defaultValues: mergedDefaults as any
     })
 
     // Register form in context for Layout to access (for trigger validation)

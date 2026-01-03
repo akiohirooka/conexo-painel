@@ -67,7 +67,7 @@ export function BusinessHoursStep() {
                             Adicionar Horário
                         </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className="bg-white text-foreground dark:bg-neutral-900 dark:text-neutral-50">
                         <DialogHeader>
                             <DialogTitle>Novo Turno</DialogTitle>
                             <DialogDescription>

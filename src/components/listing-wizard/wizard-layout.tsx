@@ -19,7 +19,9 @@ export function WizardLayout({ children }: WizardLayoutProps) {
         currentStep,
         setCurrentStep,
         listingType,
-        form
+        form,
+        isEditMode,
+        editId
     } = useWizard()
 
     const [isSubmitting, setIsSubmitting] = React.useState(false)
@@ -36,25 +38,81 @@ export function WizardLayout({ children }: WizardLayoutProps) {
                 const data = form.getValues()
 
                 if (listingType === 'business') {
-                    const { createBusiness } = await import('@/actions/create-business')
-                    const result = await createBusiness(data)
+                    if (isEditMode && editId) {
+                        const { updateBusiness } = await import('@/actions/update-business')
+                        const result = await updateBusiness({ ...data, id: editId })
 
-                    if (result.success) {
-                        toast.success('Anúncio criado com sucesso!')
-                        router.push('/dashboard/listings')
+                        if (result.success) {
+                            toast({
+                                title: 'Negócio atualizado com sucesso!',
+                                variant: 'success',
+                            })
+                            router.push('/listings/business')
+                        } else {
+                            console.error(result.error)
+                            toast({
+                                title: typeof result.error === 'string' ? result.error : 'Erro ao atualizar. Tente novamente.',
+                                variant: 'danger',
+                            })
+                            return
+                        }
                     } else {
-                        console.error(result.error)
-                        toast.error('Erro ao criar anúncio. Tente novamente.')
+                        const { createBusiness } = await import('@/actions/create-business')
+                        const result = await createBusiness(data)
+
+                        if (result.success) {
+                            toast({
+                                title: 'Anúncio criado com sucesso!',
+                                variant: 'success',
+                            })
+                            router.push('/listings/business')
+                        } else {
+                            console.error(result.error)
+                            toast({
+                                title: typeof result.error === 'string' ? result.error : 'Erro ao criar anúncio. Tente novamente.',
+                                variant: 'danger',
+                            })
+                            return
+                        }
                     }
                 } else {
-                    toast.info('Funcionalidade em desenvolvimento para este tipo.')
+                    toast({
+                        title: 'Funcionalidade em desenvolvimento para este tipo.',
+                    })
                 }
             } catch (error) {
                 console.error(error)
-                toast.error('Ocorreu um erro inesperado.')
+                toast({
+                    title: error instanceof Error ? error.message : 'Ocorreu um erro inesperado.',
+                    variant: 'danger',
+                })
             }
         } else {
-            toast.error('Por favor, corrija os erros nos passos anteriores antes de enviar.')
+            // Surface the first validation error so the user knows o que corrigir
+            const collectErrors = (errObj: any, path: string[] = []): string[] => {
+                if (!errObj) return []
+                const entries = Object.entries(errObj) as [string, any][]
+                const messages: string[] = []
+                for (const [key, val] of entries) {
+                    if (val?.message) {
+                        messages.push(`${[...path, key].join('.')}: ${val.message}`)
+                    }
+                    if (val?.types) {
+                        messages.push(...Object.values(val.types))
+                    }
+                    if (val && typeof val === 'object') {
+                        messages.push(...collectErrors(val, [...path, key]))
+                    }
+                }
+                return messages
+            }
+            const errors = collectErrors(form.formState.errors)
+            console.warn('Form validation errors:', errors)
+
+            toast({
+                title: errors[0] || 'Por favor, corrija os erros nos passos anteriores antes de enviar.',
+                variant: 'danger',
+            })
         }
         setIsSubmitting(false)
     }
@@ -63,7 +121,7 @@ export function WizardLayout({ children }: WizardLayoutProps) {
 
     // Step definitions for tabs
     const stepsMap: Record<ListingType, string[]> = {
-        business: ['Básico', 'Localização', 'Contatos', 'Horários', 'Mídia'],
+        business: ['Principal', 'Localização', 'Contatos', 'Horários', 'Mídia'],
         event: ['Básico', 'Data e Local', 'Contatos', 'Galeria'],
         job: ['Básico', 'Detalhes', 'Descrição', 'Requisitos', 'Finalização']
     }
@@ -71,6 +129,14 @@ export function WizardLayout({ children }: WizardLayoutProps) {
     const currentStepNames = listingType ? stepsMap[listingType] : []
 
     const getTitle = () => {
+        if (isEditMode) {
+            switch (listingType) {
+                case 'business': return 'Editar Negócio'
+                case 'event': return 'Editar Evento'
+                case 'job': return 'Editar Vaga'
+                default: return 'Editar Anúncio'
+            }
+        }
         switch (listingType) {
             case 'business': return 'Novo Negócio'
             case 'event': return 'Novo Evento'
@@ -83,6 +149,10 @@ export function WizardLayout({ children }: WizardLayoutProps) {
         setCurrentStep(index)
     }
 
+    const headerSubtitle = isEditMode
+        ? 'Atualize as informações do anúncio.'
+        : 'Preencha as informações abaixo'
+
     return (
         <div className="flex h-[calc(100vh-4rem)] flex-col bg-background">
             {/* Header with Tabs */}
@@ -92,7 +162,7 @@ export function WizardLayout({ children }: WizardLayoutProps) {
                         <div className="space-y-1">
                             <h2 className="text-xl font-bold text-foreground">{getTitle()}</h2>
                             <p className="text-sm text-muted-foreground">
-                                Preencha as informações abaixo
+                                {headerSubtitle}
                             </p>
                         </div>
 
@@ -108,12 +178,8 @@ export function WizardLayout({ children }: WizardLayoutProps) {
                                             checked={Boolean(field.value)}
                                             onCheckedChange={(val) => {
                                                 field.onChange(val)
-                                                if (val) {
-                                                    toast({ title: 'Publicação ativada', variant: 'success' })
-                                                } else {
-                                                    toast({ title: 'Publicação desativada', variant: 'danger' })
-                                                }
                                             }}
+                                            className="data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500 data-[state=unchecked]:bg-slate-200 data-[state=unchecked]:border-slate-300"
                                         />
                                     )}
                                 />

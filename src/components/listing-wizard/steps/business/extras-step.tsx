@@ -82,7 +82,7 @@ export function BusinessExtrasStep() {
             {/* Fake Gallery Upload */}
             <div className="space-y-4">
                 <FormLabel>Galeria de Fotos</FormLabel>
-                <div className="border-2 border-dashed rounded-lg p-8 text-center hover:bg-muted/50 transition-colors cursor-pointer bg-muted/20">
+                <div className="border border-dashed rounded-lg p-8 text-center hover:bg-muted/50 transition-colors cursor-pointer bg-muted/20">
                     <div className="flex flex-col items-center gap-2">
                         <div className="p-4 rounded-full bg-background border shadow-sm">
                             <Upload className="w-6 h-6 text-muted-foreground" />

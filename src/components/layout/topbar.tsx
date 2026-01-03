@@ -36,10 +36,10 @@ export function Topbar() {
             </div>
 
             <div className="flex items-center gap-4">
-                <Button asChild size="sm" className="hidden sm:flex bg-blue-600 hover:bg-blue-700 text-white shadow-sm dark:bg-blue-600 dark:hover:bg-blue-700 dark:text-white">
+                <Button asChild className="hidden sm:inline-flex bg-blue-600 hover:bg-blue-700 text-white shadow-sm dark:bg-blue-600 dark:hover:bg-blue-700 dark:text-white px-6 font-medium">
                     <Link href="/listings/new">
                         <Plus className="mr-2 h-4 w-4" />
-                        Novo Anúncio
+                        Anúncio
                     </Link>
                 </Button>
 

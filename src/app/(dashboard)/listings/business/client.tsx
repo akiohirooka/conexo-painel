@@ -33,9 +33,8 @@ export function BusinessClientPage({ data }: BusinessClientPageProps) {
         <DataTable
             data={data}
             columns={columns}
-            searchable={true}
-            searchKeys={["name", "category", "city"]}
-            searchPlaceholder="Buscar por nome, categoria ou cidade..."
+            searchable={false}
+            showCount={false}
         />
     )
 }

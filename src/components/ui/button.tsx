@@ -6,7 +6,7 @@ import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-all duration-200 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-300 relative",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-all duration-200 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring relative",
   {
     variants: {
       variant: {
@@ -14,12 +14,10 @@ const buttonVariants = cva(
           "bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/95 \
 shadow-sm",
         destructive:
-          "bg-red-600 text-white hover:bg-red-700 active:bg-red-800 \
-dark:bg-red-600 dark:hover:bg-red-700 dark:active:bg-red-800 \
-shadow-sm focus-visible:ring-red-600 dark:focus-visible:ring-red-600",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 active:bg-destructive/95 \
+shadow-sm focus-visible:ring-destructive",
         outline:
-          "border border-zinc-200 bg-white text-zinc-900 hover:bg-zinc-50 active:bg-zinc-100 \
-dark:border-zinc-700 dark:bg-transparent dark:text-zinc-100 dark:hover:bg-zinc-800 dark:active:bg-zinc-700 \
+          "border border-input bg-background text-foreground hover:bg-accent hover:text-accent-foreground \
 shadow-sm",
         secondary:
           "bg-zinc-100 text-zinc-900 hover:bg-zinc-200 active:bg-zinc-300 \

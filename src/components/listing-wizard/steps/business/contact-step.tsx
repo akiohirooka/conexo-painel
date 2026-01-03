@@ -22,8 +22,17 @@ const contactTypes = [
     { value: "other", label: "Outro", icon: Share2 },
 ]
 
+const HTTPS_PREFIX = "https://"
+
+const normalizeWebsiteValue = (value: string) => {
+    const trimmed = value.trim()
+    if (!trimmed || trimmed === HTTPS_PREFIX) return ""
+    if (/^https?:\/\//i.test(trimmed)) return trimmed
+    return `${HTTPS_PREFIX}${trimmed.replace(/^\/\//, '')}`
+}
+
 export function BusinessContactStep() {
-    const { control, register, trigger } = useFormContext()
+    const { control } = useFormContext()
     const { fields, append, remove } = useFieldArray({
         control,
         name: "contactsData"
@@ -34,7 +43,14 @@ export function BusinessContactStep() {
 
     const handleAdd = () => {
         if (!newContact.type || !newContact.value) return
-        append(newContact)
+
+        const value = newContact.type === "website"
+            ? normalizeWebsiteValue(newContact.value)
+            : newContact.value.trim()
+
+        if (!value) return
+
+        append({ ...newContact, value })
         setNewContact({ type: "", value: "", responsible: "" })
         setIsDialogOpen(false)
     }
@@ -59,7 +75,7 @@ export function BusinessContactStep() {
                             Adicionar Contato
                         </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className="bg-white text-foreground dark:bg-neutral-900 dark:text-neutral-50">
                         <DialogHeader>
                             <DialogTitle>Novo Contato</DialogTitle>
                             <DialogDescription>
@@ -71,7 +87,13 @@ export function BusinessContactStep() {
                                 <FormLabel>Tipo de Contato</FormLabel>
                                 <Select
                                     value={newContact.type}
-                                    onValueChange={(val) => setNewContact({ ...newContact, type: val })}
+                                    onValueChange={(val) => {
+                                        setNewContact((prev) => ({
+                                            ...prev,
+                                            type: val,
+                                            value: val === "website" && !prev.value ? HTTPS_PREFIX : prev.value
+                                        }))
+                                    }}
                                 >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Selecione..." />
@@ -91,9 +113,32 @@ export function BusinessContactStep() {
                             <div className="grid gap-2">
                                 <FormLabel>Contato (Valor)</FormLabel>
                                 <Input
-                                    placeholder="Ex: (11) 99999-9999 ou user@email.com"
+                                    placeholder={newContact.type === "website"
+                                        ? "https://www.seusite.com"
+                                        : "Ex: (11) 99999-9999 ou user@email.com"}
                                     value={newContact.value}
+                                    onFocus={(e) => {
+                                        if (newContact.type === "website" && !newContact.value) {
+                                            setNewContact((prev) => ({ ...prev, value: HTTPS_PREFIX }))
+                                            requestAnimationFrame(() => {
+                                                e.target.setSelectionRange(HTTPS_PREFIX.length, HTTPS_PREFIX.length)
+                                            })
+                                        }
+                                    }}
                                     onChange={(e) => setNewContact({ ...newContact, value: e.target.value })}
+                                    onBlur={(e) => {
+                                        if (newContact.type === "website") {
+                                            setNewContact((prev) => ({
+                                                ...prev,
+                                                value: normalizeWebsiteValue(e.target.value)
+                                            }))
+                                        } else {
+                                            setNewContact((prev) => ({
+                                                ...prev,
+                                                value: e.target.value.trim()
+                                            }))
+                                        }
+                                    }}
                                 />
                             </div>
                             <div className="grid gap-2">

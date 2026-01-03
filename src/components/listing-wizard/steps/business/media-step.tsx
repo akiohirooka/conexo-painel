@@ -7,7 +7,7 @@ import { Image as ImageIcon, Upload, Plus } from 'lucide-react'
 
 // Placeholder for a real file upload component
 const ImageUploadPlaceholder = ({ label, value, onChange }: { label: string, value?: string, onChange: (val: string) => void }) => (
-    <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center text-center hover:bg-muted/50 transition-colors cursor-pointer group">
+    <div className="border border-dashed rounded-lg p-6 flex flex-col items-center justify-center text-center hover:bg-muted/50 transition-colors cursor-pointer group">
         <div className="p-4 bg-muted rounded-full mb-3 group-hover:bg-background transition-colors">
             {value ? (
                 <div className="relative w-full h-full">

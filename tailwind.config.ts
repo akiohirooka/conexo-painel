@@ -41,26 +41,6 @@ const config: Config = {
 					DEFAULT: 'hsl(var(--destructive))',
 					foreground: 'hsl(var(--destructive-foreground))'
 				},
-				conexo: {
-					blue: {
-						DEFAULT: '#2563EB',
-						foreground: '#FFFFFF',
-					},
-					yellow: '#FACC15',
-					red: '#E11D48',
-					redSoft: '#F43F5E',
-				},
-				category: {
-					business: '#10B981',
-					event: '#FB923C',
-					job: '#4F46E5',
-				},
-				state: {
-					success: '#22C55E',
-					warning: '#F59E0B',
-					error: '#EF4444',
-					info: '#0EA5E9',
-				},
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
@@ -81,11 +61,34 @@ const config: Config = {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))',
 				},
+				// Custom Conexo Palette
+				conexo: {
+					blue: '#2563EB', // Technology, Organization
+					yellow: '#FACC15', // Energy, Community
+					red: '#E11D48', // Japan (Modern)
+					redSoft: '#F43F5E', // Background details
+				},
+				category: {
+					business: '#10B981', // Green
+					event: '#FB923C', // Orange
+					job: '#4F46E5', // Indigo
+				},
+				state: {
+					success: '#22C55E', // Green-500
+					warning: '#F59E0B', // Amber-500
+					error: '#EF4444', // Red-500
+					info: '#0EA5E9', // Sky-500
+				}
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
+			},
+			backgroundImage: {
+				'conexo-gradient-main': 'linear-gradient(135deg, #2563EB 0%, #4F46E5 100%)',
+				'conexo-gradient-jp': 'linear-gradient(135deg, #2563EB 0%, #E11D48 100%)',
+				'conexo-gradient-multi': 'linear-gradient(135deg, #2563EB 0%, #FACC15 33%, #FB923C 66%, #E11D48 100%)',
 			}
 		}
 	},

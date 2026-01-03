@@ -12,7 +12,7 @@ const contactSchema = z.object({
 const locationSchema = z.object({
     address: z.string().min(5, "Endereço muito curto"),
     city: z.string().min(2, "Cidade obrigatória"),
-    state: z.string().length(2, "Use a sigla do estado (ex: SP)"),
+    state: z.string().min(2, "Selecione a província (prefeitura)"),
     zipCode: z.string().optional(),
 })
 
@@ -28,6 +28,7 @@ export const businessSchema = z.object({
     category: z.string().min(1, "Selecione uma categoria"),
     subcategory: z.array(z.string()).default([]),
     description: z.string().min(20, "A descrição deve ser mais detalhada"),
+    siteUrl: z.string().url("URL inválida").optional().or(z.literal('')),
     isPublished: z.boolean().default(false), // Toggle
     // Step 2: Location
     location: locationSchema,

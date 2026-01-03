@@ -28,7 +28,7 @@ const types: { id: ListingType; title: string; description: string; icon: React.
 ]
 
 export function TypeSelection() {
-    const { setListingType, setTotalSteps } = useWizard()
+    const { listingType, setListingType, setTotalSteps } = useWizard()
 
     const handleSelect = (type: ListingType) => {
         setListingType(type)
@@ -49,16 +49,18 @@ export function TypeSelection() {
                 {types.map((type) => (
                     <Card
                         key={type.id}
+                        role="button"
+                        aria-pressed={listingType === type.id}
                         className={cn(
-                            "cursor-pointer hover:border-primary/50 hover:shadow-lg transition-all duration-300 group relative overflow-hidden",
-                            "border-2 hover:scale-[1.02]"
+                            "cursor-pointer transition-all duration-200 group relative overflow-hidden border bg-white",
+                            "border-neutral-200 hover:border-black",
+                            listingType === type.id ? "border-black shadow-sm" : "shadow-none"
                         )}
                         onClick={() => handleSelect(type.id)}
                     >
-                        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                         <CardHeader className="text-center pb-2">
-                            <div className="mx-auto w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                                <type.icon className="w-8 h-8 text-foreground group-hover:text-primary transition-colors" />
+                            <div className="mx-auto w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4 transition-colors group-hover:bg-muted/70">
+                                <type.icon className="w-8 h-8 text-foreground" />
                             </div>
                             <CardTitle className="text-xl">{type.title}</CardTitle>
                         </CardHeader>

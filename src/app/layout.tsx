@@ -31,7 +31,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="pt-br" suppressHydrationWarning>
         <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased  text-foreground`}
+          className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
         >
           <AnalyticsPixels />
           <QueryProvider>

@@ -20,6 +20,14 @@ import { Switch } from '@/components/ui/switch'
 export function BusinessBasicStep() {
     const { control, watch, setValue } = useFormContext()
     const [categories, setCategories] = useState<CategoryWithSubs[]>([])
+    const HTTPS_PREFIX = "https://"
+
+    const ensureHttpsPrefix = (value: string) => {
+        const trimmed = value.trim()
+        if (!trimmed || trimmed === HTTPS_PREFIX) return ""
+        if (/^https?:\/\//i.test(trimmed)) return trimmed
+        return `${HTTPS_PREFIX}${trimmed.replace(/^\/\//, '')}`
+    }
 
     // Watch category to show relevant subcategories
     const selectedCategoryName = watch('category')
@@ -141,6 +149,37 @@ export function BusinessBasicStep() {
                             />
                         </FormControl>
                         <FormDescription>Mínimo de 20 caracteres.</FormDescription>
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
+
+            <FormField
+                control={control}
+                name="siteUrl"
+                render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Site principal</FormLabel>
+                        <FormControl>
+                            <Input
+                                placeholder="https://www.seusite.com"
+                                {...field}
+                                onFocus={(e) => {
+                                    if (!field.value) {
+                                        field.onChange(HTTPS_PREFIX)
+                                        requestAnimationFrame(() => {
+                                            e.target.setSelectionRange(HTTPS_PREFIX.length, HTTPS_PREFIX.length)
+                                        })
+                                    }
+                                }}
+                                onBlur={(e) => {
+                                    const normalized = ensureHttpsPrefix(e.target.value)
+                                    field.onChange(normalized)
+                                    field.onBlur()
+                                }}
+                            />
+                        </FormControl>
+                        <FormDescription>Você pode adicionar outros sites ou redes em Contatos.</FormDescription>
                         <FormMessage />
                     </FormItem>
                 )}

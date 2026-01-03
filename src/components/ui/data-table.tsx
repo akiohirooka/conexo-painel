@@ -13,6 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Search } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export interface Column<T> {
   key: keyof T | string;
@@ -123,11 +124,11 @@ export function DataTable<T extends Record<string, unknown>>({
 
       <Table>
         <TableHeader>
-          <TableRow className="border-border">
+          <TableRow className="border-border bg-muted/40 h-[55px] [&>th]:!h-[55px] [&>th]:!py-0">
             {columns.map((column) => (
               <TableHead
                 key={typeof column.key === 'string' ? column.key : String(column.key)}
-                className={`text-muted-foreground ${column.className || ""}`}
+                className={cn("text-muted-foreground text-sm !h-[55px] !py-0 align-middle", column.className)}
               >
                 {column.header}
               </TableHead>
@@ -146,11 +147,17 @@ export function DataTable<T extends Record<string, unknown>>({
             </TableRow>
           ) : (
             displayData.map((item, index) => (
-              <TableRow key={(item as { id?: string | number }).id || index} className="border-border">
+              <TableRow
+                key={(item as { id?: string | number }).id || index}
+                className={cn(
+                  "border-border transition-colors text-sm align-middle h-[55px] [&>td]:!h-[55px] [&>td]:!py-0",
+                  index % 2 === 0 ? "bg-white" : "bg-muted/20"
+                )}
+              >
                 {columns.map((column) => (
                   <TableCell
                     key={typeof column.key === 'string' ? column.key : String(column.key)}
-                    className={column.className}
+                    className={cn("!h-[55px] !py-0 align-middle leading-snug whitespace-nowrap overflow-hidden text-ellipsis", column.className)}
                   >
                     {column.render
                       ? column.render(item)

@@ -98,7 +98,7 @@ export function WizardLayout({ children }: WizardLayoutProps) {
                         messages.push(`${[...path, key].join('.')}: ${val.message}`)
                     }
                     if (val?.types) {
-                        messages.push(...Object.values(val.types))
+                        messages.push(...Object.values(val.types) as string[])
                     }
                     if (val && typeof val === 'object') {
                         messages.push(...collectErrors(val, [...path, key]))
@@ -157,7 +157,7 @@ export function WizardLayout({ children }: WizardLayoutProps) {
         <div className="flex h-[calc(100vh-4rem)] flex-col bg-background">
             {/* Header with Tabs */}
             <div className="border-b bg-background sticky top-0 z-10">
-                <div className="px-8 py-6 flex items-center justify-between">
+                <div className="px-4 py-4 md:px-8 md:py-6 flex items-center justify-between">
                     <div className="space-y-4">
                         <div className="space-y-1">
                             <h2 className="text-xl font-bold text-foreground">{getTitle()}</h2>
@@ -202,7 +202,7 @@ export function WizardLayout({ children }: WizardLayoutProps) {
                 </div>
 
                 {/* Tabs Navigation */}
-                <div className="px-8 flex gap-6 overflow-x-auto scrollbar-hide">
+                <div className="px-4 md:px-8 flex gap-6 overflow-x-auto scrollbar-hide">
                     {currentStepNames.map((name, index) => {
                         const isActive = currentStep === index
 
@@ -226,8 +226,8 @@ export function WizardLayout({ children }: WizardLayoutProps) {
             </div>
 
             {/* Content Area */}
-            <div className="flex-1 overflow-y-auto p-8 bg-muted/5">
-                <div className="max-w-4xl mx-auto bg-card rounded-xl border shadow-sm p-8">
+            <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-muted/5">
+                <div className="max-w-4xl mx-auto bg-card rounded-xl border shadow-sm p-4 md:p-8">
                     {children}
                 </div>
             </div>

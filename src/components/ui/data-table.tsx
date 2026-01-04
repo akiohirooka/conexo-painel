@@ -97,7 +97,7 @@ export function DataTable<T extends Record<string, unknown>>({
     <Card className={className}>
       {(searchable || headerContent || showCount) && (
         <div className="p-6 border-b border-border">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center space-x-4 flex-1">
               {searchable && (
                 <div className="relative flex-1 max-w-sm">

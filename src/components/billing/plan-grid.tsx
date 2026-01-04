@@ -1,6 +1,6 @@
 "use client"
 
-import { CheckoutButton } from '@clerk/clerk-react/experimental'
+// import { CheckoutButton } from '@clerk/clerk-react/experimental'
 import { SignedIn, SignedOut, SignInButton } from '@clerk/nextjs'
 import { PlanDisplay, PlanPricingSection, buildPlanTiers } from '@/components/plans'
 import { Button } from '@/components/ui/button'
@@ -84,7 +84,7 @@ export function PlanGrid({ plans }: PlanGridProps) {
         return (
           <>
             <SignedIn>
-              <CheckoutButton
+              {/* <CheckoutButton
                 planId={tier.plan.clerkId}
                 planPeriod={planPeriod}
                 newSubscriptionRedirectUrl="/dashboard"
@@ -97,11 +97,14 @@ export function PlanGrid({ plans }: PlanGridProps) {
                     }
                   }
                 }}
+              > */}
+              <Button
+                className={cn('w-full relative transition-all duration-300', defaultButtonClassName)}
+                onClick={() => alert("Checkout temporariamente indisponível. Contate o suporte.")}
               >
-                <Button className={cn('w-full relative transition-all duration-300', defaultButtonClassName)}>
-                  {buttonLabel}
-                </Button>
-              </CheckoutButton>
+                {buttonLabel}
+              </Button>
+              {/* </CheckoutButton> */}
             </SignedIn>
             <SignedOut>
               <SignInButton mode="modal" forceRedirectUrl="/subscribe" fallbackRedirectUrl="/subscribe">

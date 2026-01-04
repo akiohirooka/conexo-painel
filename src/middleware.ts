@@ -21,22 +21,23 @@ export default E2E_BYPASS
       return NextResponse.next()
     }
 
+    // Protect all other routes
+    const authObject = await auth()
+    if (!authObject.userId) {
+      const url = new URL('/sign-in', request.url)
+      return NextResponse.redirect(url)
+    }
+
     // Quick guard for admin routes to reduce UI flash
     if (isAdminRoute(request)) {
-      const authResult = await auth()
-      if (!authResult.userId) {
-        const url = new URL('/sign-in', request.url)
-        return NextResponse.redirect(url)
-      }
       // Optional: only enforce ADMIN_USER_IDS here to avoid extra lookups
       const adminUserIds = process.env.ADMIN_USER_IDS?.split(',').filter(Boolean) || []
-      if (adminUserIds.length > 0 && !adminUserIds.includes(authResult.userId)) {
+      if (adminUserIds.length > 0 && !adminUserIds.includes(authObject.userId)) {
         const url = new URL('/', request.url)
         return NextResponse.redirect(url)
       }
     }
 
-    // For all other routes, the auth() call in the route handler will handle protection
     return NextResponse.next()
   })
 

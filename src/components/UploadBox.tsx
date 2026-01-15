@@ -12,6 +12,7 @@ export function UploadBox() {
     const [entityId, setEntityId] = useState<string>('');
 
     const [uploading, setUploading] = useState(false);
+    const [deleting, setDeleting] = useState(false);
     const [resultKey, setResultKey] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
@@ -57,6 +58,49 @@ export function UploadBox() {
         }
     };
 
+    const handleDelete = async () => {
+        if (!resultKey) return;
+
+        setDeleting(true);
+        setError(null);
+
+        try {
+            const body: any = {
+                entity,
+                type,
+                key: resultKey
+            };
+
+            if (entity !== 'users') {
+                if (!entityId) throw new Error('Entity ID missing for delete');
+                body.entityId = entityId;
+            }
+
+            const res = await fetch('/api/upload', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(body)
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.error || 'Delete failed');
+            }
+
+            // Success: clear key
+            setResultKey(null);
+            alert('File deleted successfully');
+
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setDeleting(false);
+        }
+    };
+
     return (
         <div className="p-4 border rounded shadow-sm max-w-md bg-white text-black w-full">
             <h2 className="text-lg font-bold mb-4">Upload to R2 (Advanced)</h2>
@@ -69,7 +113,7 @@ export function UploadBox() {
                         value={entity}
                         onChange={(e) => setEntity(e.target.value)}
                         className="border p-2 rounded bg-white text-black"
-                        disabled={uploading}
+                        disabled={uploading || deleting}
                     >
                         {ENTITIES.map(ent => (
                             <option key={ent} value={ent}>{ent}</option>
@@ -84,7 +128,7 @@ export function UploadBox() {
                         value={type}
                         onChange={(e) => setType(e.target.value)}
                         className="border p-2 rounded bg-white text-black"
-                        disabled={uploading}
+                        disabled={uploading || deleting}
                     >
                         {TYPES.map(t => (
                             <option key={t} value={t}>{t}</option>
@@ -102,7 +146,7 @@ export function UploadBox() {
                             onChange={(e) => setEntityId(e.target.value)}
                             placeholder="Enter ID"
                             className="border p-2 rounded text-black"
-                            disabled={uploading}
+                            disabled={uploading || deleting}
                             required
                         />
                     </div>
@@ -118,18 +162,31 @@ export function UploadBox() {
                                 setFile(e.target.files[0]);
                             }
                         }}
-                        disabled={uploading}
+                        disabled={uploading || deleting}
                         className="border p-2 rounded"
                     />
                 </div>
 
-                <button
-                    type="submit"
-                    disabled={!file || uploading}
-                    className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 disabled:opacity-50 mt-2"
-                >
-                    {uploading ? 'Uploading...' : 'Upload'}
-                </button>
+                <div className="flex gap-2 mt-2">
+                    <button
+                        type="submit"
+                        disabled={!file || uploading || deleting}
+                        className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 disabled:opacity-50 flex-1"
+                    >
+                        {uploading ? 'Uploading...' : 'Upload'}
+                    </button>
+
+                    {resultKey && (
+                        <button
+                            type="button"
+                            onClick={handleDelete}
+                            disabled={deleting}
+                            className="bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700 disabled:opacity-50"
+                        >
+                            {deleting ? 'Deleting...' : 'Delete Last'}
+                        </button>
+                    )}
+                </div>
             </form>
 
             {error && (

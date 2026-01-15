@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PutObjectCommand } from '@aws-sdk/client-s3';
+import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { r2 } from '@/lib/r2';
 import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
@@ -186,6 +186,134 @@ export async function POST(req: NextRequest) {
     console.error('Unexpected upload error:', error);
     return NextResponse.json(
       { ok: false, error: error.message || 'Unexpected upload error' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const json = await req.json();
+    const { entity, type, entityId, key } = json;
+
+    if (!entity || !type || !key) {
+      return NextResponse.json({ ok: false, error: 'Missing required fields: entity, type, key' }, { status: 400 });
+    }
+
+    if (!VALID_ENTITIES.includes(entity as Entity)) {
+      return NextResponse.json({ ok: false, error: 'Invalid entity' }, { status: 400 });
+    }
+
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    let finalEntityId = entityId;
+    if (entity === 'users') {
+      finalEntityId = userId;
+    } else {
+      if (!finalEntityId || isNaN(Number(finalEntityId))) {
+        return NextResponse.json({ ok: false, error: 'Valid entityId is required' }, { status: 400 });
+      }
+
+      const idBigInt = BigInt(finalEntityId);
+      let allowed = false;
+
+      if (entity === 'business') {
+        const record = await db.businesses.findFirst({
+          where: { id: idBigInt, clerk_user_id: userId },
+          select: { id: true }
+        });
+        allowed = !!record;
+      } else if (entity === 'events') {
+        const record = await db.events.findFirst({
+          where: { id: idBigInt, clerk_user_id: userId },
+          select: { id: true }
+        });
+        allowed = !!record;
+      } else if (entity === 'jobs') {
+        const record = await db.jobs.findFirst({
+          where: { id: idBigInt, clerk_user_id: userId },
+          select: { id: true }
+        });
+        allowed = !!record;
+      }
+
+      if (!allowed) {
+        return NextResponse.json({ ok: false, error: 'Forbidden' }, { status: 403 });
+      }
+    }
+
+    // Delete from R2
+    if (!process.env.R2_BUCKET) {
+      throw new Error('R2_BUCKET environment variable is missing');
+    }
+
+    await r2.send(
+      new DeleteObjectCommand({
+        Bucket: process.env.R2_BUCKET,
+        Key: key,
+      })
+    );
+
+    // Update DB (only for business for now as requested)
+    if (entity === 'business' && finalEntityId) {
+      const idBigInt = BigInt(finalEntityId);
+
+      if (type === 'gallery') {
+        // Need to fetch current array to remove item since Prisma doesn't have 'pull' for scalar lists easily in update without set? 
+        // Actually, for scalar lists (String[]), we can set it to the filtered array.
+        const current = await db.businesses.findUnique({
+          where: { id: idBigInt },
+          select: { gallery_images: true }
+        });
+
+        if (current?.gallery_images) {
+          const newGallery = current.gallery_images.filter(k => k !== key);
+          await db.businesses.update({
+            where: { id: idBigInt },
+            data: { gallery_images: newGallery }
+          });
+        }
+
+      } else if (type === 'logo') {
+        // Only set to null if it matches the key being deleted
+        /* 
+           Performance Note: We could blindly set null, but better only if it matches? 
+           The prompt says: "se logo_url === key, setar logo_url = null"
+        */
+        const current = await db.businesses.findUnique({
+          where: { id: idBigInt },
+          select: { logo_url: true }
+        });
+        if (current?.logo_url === key) {
+          await db.businesses.update({
+            where: { id: idBigInt },
+            data: { logo_url: null }
+          });
+        }
+
+      } else if (type === 'cover') {
+        const current = await db.businesses.findUnique({
+          where: { id: idBigInt },
+          select: { cover_image_url: true }
+        });
+        if (current?.cover_image_url === key) {
+          await db.businesses.update({
+            where: { id: idBigInt },
+            data: { cover_image_url: null }
+          });
+        }
+      }
+    }
+
+    return NextResponse.json({ ok: true });
+
+  } catch (error: any) {
+    console.error('Delete error:', error);
+    return NextResponse.json(
+      { ok: false, error: error.message || 'Delete operation failed' },
       { status: 500 }
     );
   }

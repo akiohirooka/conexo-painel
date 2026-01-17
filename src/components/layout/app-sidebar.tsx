@@ -84,11 +84,7 @@ const navMain: NavItem[] = [
         url: "/listings/jobs",
         icon: Briefcase,
     },
-    {
-        title: "Favoritos",
-        url: "/favorites", // Optional
-        icon: Heart,
-    },
+
     {
         title: "Conta",
         url: "/account",

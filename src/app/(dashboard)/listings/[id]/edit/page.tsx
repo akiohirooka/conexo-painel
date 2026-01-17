@@ -15,7 +15,7 @@ export default async function EditListingPage({ params, searchParams }: EditList
     const listingType = searchParams.type || 'business'
 
     if (listingType === 'job') {
-        // @ts-ignore - getJob returns Promise
+
         const { success, data, error } = await getJob(id)
 
         if (!success || !data) {

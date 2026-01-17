@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { usePathname } from "next/navigation"
 import { site } from "@/lib/brand-config"
 import {
     Briefcase,
@@ -54,7 +55,6 @@ interface NavItem {
     title: string;
     url: string;
     icon?: any;
-    isActive?: boolean;
     items?: {
         title: string;
         url: string;
@@ -68,25 +68,21 @@ const navMain: NavItem[] = [
         title: "Dashboard",
         url: "/dashboard",
         icon: Home,
-        isActive: true,
     },
     {
         title: "Negócios",
         url: "/listings/business",
         icon: Building2,
-        isActive: true,
     },
     {
         title: "Eventos",
         url: "/listings/events",
         icon: Calendar,
-        isActive: true, // You might want to manage isActive state logic dynamically if possible, or default to false
     },
     {
         title: "Empregos",
         url: "/listings/jobs",
         icon: Briefcase,
-        isActive: true,
     },
     {
         title: "Favoritos",
@@ -124,6 +120,15 @@ const navAdmin: NavItem[] = [
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const { state } = useSidebar()
+    const pathname = usePathname()
+
+    // Helper to check if a main item or its children are active
+    const isItemActive = (item: NavItem) => {
+        if (item.url !== "#" && pathname.startsWith(item.url)) return true
+        if (item.items?.some(subItem => pathname.startsWith(subItem.url))) return true
+        return false
+    }
+
     return (
         <Sidebar collapsible="icon" {...props}>
             <SidebarHeader>
@@ -153,12 +158,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                     <Collapsible
                                         key={item.title}
                                         asChild
-                                        defaultOpen={item.isActive}
+                                        defaultOpen={isItemActive(item)}
                                         className="group/collapsible"
                                     >
                                         <SidebarMenuItem>
                                             <CollapsibleTrigger asChild>
-                                                <SidebarMenuButton tooltip={item.title}>
+                                                <SidebarMenuButton tooltip={item.title} isActive={isItemActive(item)}>
                                                     {item.icon && <item.icon />}
                                                     <span>{item.title}</span>
                                                     <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
@@ -168,9 +173,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                                 <SidebarMenuSub>
                                                     {item.items?.map((subItem) => (
                                                         <SidebarMenuSubItem key={subItem.title}>
-                                                            <SidebarMenuSubButton asChild>
+                                                            <SidebarMenuSubButton asChild isActive={pathname === subItem.url}>
                                                                 <a href={subItem.url}>
-                                                                    {/* {subItem.icon && <subItem.icon />} */}
                                                                     <span>{subItem.title}</span>
                                                                 </a>
                                                             </SidebarMenuSubButton>
@@ -181,7 +185,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                         </SidebarMenuItem>
                                     </Collapsible>
                                 ) : (
-                                    <SidebarMenuButton asChild tooltip={item.title}>
+                                    <SidebarMenuButton asChild tooltip={item.title} isActive={pathname === item.url}>
                                         <a href={item.url}>
                                             <item.icon />
                                             <span>{item.title}</span>
@@ -201,12 +205,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                             <Collapsible
                                 key={item.title}
                                 asChild
-                                defaultOpen={false}
+                                defaultOpen={isItemActive(item)}
                                 className="group/collapsible"
                             >
                                 <SidebarMenuItem>
                                     <CollapsibleTrigger asChild>
-                                        <SidebarMenuButton tooltip={item.title}>
+                                        <SidebarMenuButton tooltip={item.title} isActive={isItemActive(item)}>
                                             {item.icon && <item.icon />}
                                             <span>{item.title}</span>
                                             <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
@@ -216,7 +220,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                         <SidebarMenuSub>
                                             {item.items?.map((subItem) => (
                                                 <SidebarMenuSubItem key={subItem.title}>
-                                                    <SidebarMenuSubButton asChild>
+                                                    <SidebarMenuSubButton asChild isActive={pathname === subItem.url}>
                                                         <a href={subItem.url}>
                                                             <span>{subItem.title}</span>
                                                         </a>

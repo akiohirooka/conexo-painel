@@ -26,46 +26,33 @@ import { StatusBadge } from "@/components/ui-conexo/status-badge"
 import { EmptyState } from "@/components/ui-conexo/empty-state"
 import Link from "next/link"
 
-// --- Mock Data ---
-
-interface Listing {
-    id: string
-    title: string
-    type: "Negócio" | "Event" | "Vaga"
-    status: "approved" | "pending" | "rejected"
-    date: string
-    clicks: number
-}
-
-const MOCK_LISTINGS: Listing[] = [
-    { id: "1", title: "Padaria do Zé", type: "Negócio", status: "approved", date: "20/12/2025", clicks: 12 },
-    { id: "2", title: "Festival Brasileiro", type: "Event", status: "pending", date: "21/12/2025", clicks: 0 },
-    { id: "3", title: "Vaga de Cozinheiro", type: "Vaga", status: "approved", date: "19/12/2025", clicks: 5 },
-    { id: "4", title: "Consultoria Visa", type: "Negócio", status: "rejected", date: "18/12/2025", clicks: 1 },
-    { id: "5", title: "Show de Pagode", type: "Event", status: "approved", date: "15/12/2025", clicks: 45 },
-]
+import { getDashboardData, DashboardListing as Listing } from "@/actions/dashboard/get-dashboard-data"
+import { TypeBadge } from "@/components/ui-conexo/type-badge"
 
 export default function DashboardPage() {
     const [isLoading, setIsLoading] = useState(true)
     const [listings, setListings] = useState<Listing[]>([])
+    const [stats, setStats] = useState({
+        approved: 0,
+        pending: 0,
+        rejected: 0,
+        totalClicks: 0
+    })
 
     useEffect(() => {
-        // Simulate API fetch
-        const timer = setTimeout(() => {
-            setListings(MOCK_LISTINGS)
-            setIsLoading(false)
-        }, 1500)
-        return () => clearTimeout(timer)
+        async function loadData() {
+            try {
+                const data = await getDashboardData()
+                setListings(data.listings)
+                setStats(data.stats)
+            } catch (error) {
+                console.error("Failed to load dashboard data", error)
+            } finally {
+                setIsLoading(false)
+            }
+        }
+        loadData()
     }, [])
-
-    // KPI Calculations
-    const approvedCount = listings.filter(l => l.status === "approved").length
-    const pendingCount = listings.filter(l => l.status === "pending").length
-    const rejectedCount = listings.filter(l => l.status === "rejected").length
-    const totalClicks = listings.reduce((acc, curr) => acc + curr.clicks, 0)
-
-    // Empty state toggle for demo (not part of requirements but good for testing)
-    // setListings([]) to test empty state
 
     if (isLoading) {
         return <DashboardSkeleton />
@@ -82,25 +69,25 @@ export default function DashboardPage() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <KpiCard
                     title="Aprovados"
-                    value={approvedCount}
+                    value={stats.approved}
                     icon={CheckCircle2}
                     description="Anúncios ativos"
                 />
                 <KpiCard
                     title="Pendentes"
-                    value={pendingCount}
+                    value={stats.pending}
                     icon={Clock}
                     description="Aguardando aprovação"
                 />
                 <KpiCard
                     title="Rejeitados"
-                    value={rejectedCount}
+                    value={stats.rejected}
                     icon={XCircle}
                     description="Precisam de revisão"
                 />
                 <KpiCard
                     title="Cliques em Contato"
-                    value={totalClicks}
+                    value={stats.totalClicks}
                     icon={MousePointerClick}
                     description="Total de interações"
                     trend={{ value: "+12%", isPositive: true }}
@@ -127,7 +114,9 @@ export default function DashboardPage() {
                                 {listings.map((listing) => (
                                     <TableRow key={listing.id}>
                                         <TableCell className="font-medium">{listing.title}</TableCell>
-                                        <TableCell>{listing.type}</TableCell>
+                                        <TableCell>
+                                            <TypeBadge type={listing.type} />
+                                        </TableCell>
                                         <TableCell>
                                             <StatusBadge status={listing.status} />
                                         </TableCell>

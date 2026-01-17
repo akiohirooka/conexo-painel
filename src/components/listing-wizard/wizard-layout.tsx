@@ -193,7 +193,7 @@ export function WizardLayout({ children }: WizardLayoutProps) {
                         <Button
                             onClick={handleSubmit}
                             disabled={isSubmitting}
-                            className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 shadow-sm"
+                            className="font-medium px-6 shadow-sm"
                         >
                             {isSubmitting ? 'Salvando...' : 'Salvar'}
                             {!isSubmitting && <Send className="w-4 h-4 ml-2" />}

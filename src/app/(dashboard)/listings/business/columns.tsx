@@ -30,32 +30,46 @@ export type BusinessColumn = {
     state: string | null
 }
 
+// Helper to get valid logo URL (handles both old relative paths and new full URLs)
+const getLogoUrl = (logoUrl: string | null): string | null => {
+    if (!logoUrl) return null
+    // If it's already a full URL, return as-is
+    if (logoUrl.startsWith('http')) return logoUrl
+    // For old relative paths, try to construct URL with env var
+    const baseUrl = process.env.NEXT_PUBLIC_R2_BASE_URL
+    if (baseUrl) {
+        return `${baseUrl.replace(/\/+$/, '')}/${logoUrl}`
+    }
+    return null // Can't display without base URL
+}
+
 export const columns: Column<BusinessColumn>[] = [
     {
         key: "name",
         header: "Negócio",
         className: "w-[300px]",
-        render: (item) => (
-            <div className="flex items-center gap-3">
-                <div className="relative h-9 w-9 overflow-hidden rounded-lg bg-muted">
-                    {item.logo_url ? (
-                        <Image
-                            src={item.logo_url}
-                            alt={item.name}
-                            fill
-                            className="object-cover"
-                        />
-                    ) : (
-                        <div className="flex h-full w-full items-center justify-center bg-primary/10 text-primary font-bold text-xs">
-                            {item.name.slice(0, 2).toUpperCase()}
-                        </div>
-                    )}
+        render: (item) => {
+            const logoUrl = getLogoUrl(item.logo_url)
+            return (
+                <div className="flex items-center gap-3">
+                    <div className="relative h-7 w-7 flex-shrink-0 overflow-hidden rounded-lg bg-muted">
+                        {logoUrl ? (
+                            <Image
+                                src={logoUrl}
+                                alt={item.name}
+                                fill
+                                className="object-cover"
+                            />
+                        ) : (
+                            <div className="flex h-full w-full items-center justify-center bg-primary/10 text-primary font-bold text-xs">
+                                {item.name.slice(0, 2).toUpperCase()}
+                            </div>
+                        )}
+                    </div>
+                    <span className="font-semibold text-foreground text-base leading-tight truncate max-w-[200px]">{item.name}</span>
                 </div>
-                <div className="flex flex-col justify-center">
-                    <span className="font-semibold text-foreground text-base leading-tight">{item.name}</span>
-                </div>
-            </div>
-        )
+            )
+        }
     },
     {
         key: "category",
@@ -100,7 +114,12 @@ export const columns: Column<BusinessColumn>[] = [
         render: (item) => (
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         <MoreHorizontal className="h-4 w-4" />
                         <span className="sr-only">Ações</span>
                     </Button>

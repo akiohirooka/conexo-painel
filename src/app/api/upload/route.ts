@@ -3,6 +3,7 @@ import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { r2 } from '@/lib/r2';
 import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
+import { extractR2KeyFromUrl, getPublicR2Url } from '@/lib/r2-public';
 
 export const runtime = 'nodejs';
 
@@ -142,7 +143,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 5. Persist Key to Database (Business only)
+    // 5. Persist Full URL to Database (Business only)
+    // Generate full public URL from the key
+    const fullUrl = getPublicR2Url(key);
+
     if (entity === 'business' && finalEntityId) {
       const idBigInt = BigInt(finalEntityId);
 
@@ -152,7 +156,7 @@ export async function POST(req: NextRequest) {
             where: { id: idBigInt },
             data: {
               gallery_images: {
-                push: key
+                push: fullUrl
               }
             }
           });
@@ -160,14 +164,14 @@ export async function POST(req: NextRequest) {
           await db.businesses.update({
             where: { id: idBigInt },
             data: {
-              logo_url: key
+              logo_url: fullUrl
             }
           });
         } else if (type === 'cover') {
           await db.businesses.update({
             where: { id: idBigInt },
             data: {
-              cover_image_url: key
+              cover_image_url: fullUrl
             }
           });
         }
@@ -180,7 +184,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ ok: true, key });
+    return NextResponse.json({ ok: true, key: fullUrl });
 
   } catch (error: any) {
     console.error('Unexpected upload error:', error);
@@ -245,6 +249,9 @@ export async function DELETE(req: NextRequest) {
       }
     }
 
+    // Extract key from URL if needed (e.g., if frontend sends full URL)
+    const r2Key = extractR2KeyFromUrl(key);
+
     // Delete from R2
     if (!process.env.R2_BUCKET) {
       throw new Error('R2_BUCKET environment variable is missing');
@@ -253,7 +260,7 @@ export async function DELETE(req: NextRequest) {
     await r2.send(
       new DeleteObjectCommand({
         Bucket: process.env.R2_BUCKET,
-        Key: key,
+        Key: r2Key,
       })
     );
 
@@ -270,7 +277,7 @@ export async function DELETE(req: NextRequest) {
         });
 
         if (current?.gallery_images) {
-          const newGallery = current.gallery_images.filter(k => k !== key);
+          const newGallery = current.gallery_images.filter(k => k !== r2Key);
           await db.businesses.update({
             where: { id: idBigInt },
             data: { gallery_images: newGallery }
@@ -287,7 +294,7 @@ export async function DELETE(req: NextRequest) {
           where: { id: idBigInt },
           select: { logo_url: true }
         });
-        if (current?.logo_url === key) {
+        if (current?.logo_url === r2Key) {
           await db.businesses.update({
             where: { id: idBigInt },
             data: { logo_url: null }
@@ -299,7 +306,7 @@ export async function DELETE(req: NextRequest) {
           where: { id: idBigInt },
           select: { cover_image_url: true }
         });
-        if (current?.cover_image_url === key) {
+        if (current?.cover_image_url === r2Key) {
           await db.businesses.update({
             where: { id: idBigInt },
             data: { cover_image_url: null }

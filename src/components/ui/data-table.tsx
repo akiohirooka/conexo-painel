@@ -34,6 +34,7 @@ interface DataTableProps<T> {
   emptyMessage?: string;
   showCount?: boolean;
   countLabel?: string;
+  onRowClick?: (item: T) => void;
   headerContent?: React.ReactNode;
   className?: string;
 }
@@ -50,6 +51,7 @@ export function DataTable<T extends Record<string, unknown>>({
   emptyMessage = "Nenhum item encontrado",
   showCount = true,
   countLabel = "itens",
+  onRowClick,
   headerContent,
   className = "",
 }: DataTableProps<T>) {
@@ -124,11 +126,11 @@ export function DataTable<T extends Record<string, unknown>>({
 
       <Table>
         <TableHeader>
-          <TableRow className="border-border bg-muted/40 h-[55px] [&>th]:!h-[55px] [&>th]:!py-0">
+          <TableRow className="border-border bg-muted/40 h-[55px]">
             {columns.map((column) => (
               <TableHead
                 key={typeof column.key === 'string' ? column.key : String(column.key)}
-                className={cn("text-muted-foreground text-sm !h-[55px] !py-0 align-middle", column.className)}
+                className={cn("text-muted-foreground text-sm h-[55px] align-middle", column.className)}
               >
                 {column.header}
               </TableHead>
@@ -149,15 +151,17 @@ export function DataTable<T extends Record<string, unknown>>({
             displayData.map((item, index) => (
               <TableRow
                 key={(item as { id?: string | number }).id || index}
+                onClick={() => onRowClick && onRowClick(item)}
                 className={cn(
-                  "border-border transition-colors text-sm align-middle h-[55px] [&>td]:!h-[55px] [&>td]:!py-0",
-                  index % 2 === 0 ? "bg-white" : "bg-muted/20"
+                  "border-border transition-colors text-sm h-[55px]",
+                  index % 2 === 0 ? "bg-white" : "bg-muted/20",
+                  onRowClick && "cursor-pointer hover:bg-muted/50"
                 )}
               >
                 {columns.map((column) => (
                   <TableCell
                     key={typeof column.key === 'string' ? column.key : String(column.key)}
-                    className={cn("!h-[55px] !py-0 align-middle leading-snug whitespace-nowrap overflow-hidden text-ellipsis", column.className)}
+                    className={cn("h-[55px] align-middle", column.className)}
                   >
                     {column.render
                       ? column.render(item)

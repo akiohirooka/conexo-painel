@@ -36,7 +36,7 @@ export function Topbar() {
             </div>
 
             <div className="flex items-center gap-4">
-                <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm dark:bg-blue-600 dark:hover:bg-blue-700 dark:text-white px-3 sm:px-6 font-medium">
+                <Button asChild className="px-3 sm:px-6 font-medium shadow-sm">
                     <Link href="/listings/new">
                         <Plus className="h-4 w-4 sm:mr-2" />
                         <span className="hidden sm:inline">Anúncio</span>

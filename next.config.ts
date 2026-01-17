@@ -18,6 +18,18 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'html.tailus.io',
       },
+      {
+        protocol: 'https',
+        hostname: 'cdn.conexo.jp',
+      },
+      {
+        protocol: 'https',
+        hostname: 'conexo-app.r2.dev',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.r2.dev', // Allow all R2 dev URLs
+      },
     ],
   },
   webpack: (config, { dev }) => {

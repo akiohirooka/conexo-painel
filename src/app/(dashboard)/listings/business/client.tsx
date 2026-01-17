@@ -35,6 +35,7 @@ export function BusinessClientPage({ data }: BusinessClientPageProps) {
             columns={columns}
             searchable={false}
             showCount={false}
+            onRowClick={(item) => router.push(`/listings/${item.id}/edit`)}
         />
     )
 }

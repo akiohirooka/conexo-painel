@@ -45,8 +45,8 @@ export const businessSchema = z.object({
         end: z.string()
     })).default([]),
     // Step 5: Media
-    logo: z.string().optional(),
-    coverImage: z.string().optional(),
+    logo: z.string().nullable().optional(),
+    coverImage: z.string().nullable().optional(),
     gallery: gallerySchema,
 
     // Legacy/Optional placeholders if strictly needed by UI before migration

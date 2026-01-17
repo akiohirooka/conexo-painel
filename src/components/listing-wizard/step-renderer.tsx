@@ -94,18 +94,22 @@ function StepContent({ initialData }: { initialData?: Record<string, unknown> | 
         if (type === 'event') {
             return {
                 ...common,
+                organizerId: "",
                 title: "",
                 description: "",
-                category: "",
                 startDate: "",
                 endDate: "",
                 startTime: "",
+                endTime: "",
+                eventMode: "presencial",
                 location: { address: "", city: "", state: "", zipCode: "" },
-                isOnline: false,
                 price: 0,
-                organizer: "",
-                contact: { phone: "", whatsapp: "", email: "", website: "", instagram: "" },
-                gallery: { images: [] }
+                priceCurrency: "JPY",
+                ticketUrl: "",
+                contactsData: [],
+                coverImage: "",
+                galleryImages: [],
+                isPublished: false,
             }
         }
 
@@ -133,12 +137,21 @@ function StepContent({ initialData }: { initialData?: Record<string, unknown> | 
     const mergedDefaults = React.useMemo(() => {
         if (!initialData) return baseDefaults
         if (listingType === 'business') {
+            const businessDefaults = baseDefaults as any
             return {
-                ...baseDefaults,
+                ...businessDefaults,
                 ...initialData,
-                location: { ...baseDefaults.location, ...(initialData as any).location },
-                gallery: { ...baseDefaults.gallery, ...(initialData as any).gallery },
-                contact: { ...baseDefaults.contact, ...(initialData as any).contact },
+                location: { ...businessDefaults.location, ...(initialData as any).location },
+                gallery: { ...businessDefaults.gallery, ...(initialData as any).gallery },
+                contact: { ...businessDefaults.contact, ...(initialData as any).contact },
+            }
+        }
+        if (listingType === 'event') {
+            const eventDefaults = baseDefaults as any
+            return {
+                ...eventDefaults,
+                ...initialData,
+                location: { ...eventDefaults.location, ...(initialData as any).location },
             }
         }
         return { ...baseDefaults, ...initialData }

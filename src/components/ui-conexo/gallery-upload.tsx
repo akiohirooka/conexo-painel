@@ -366,7 +366,7 @@ export function GalleryUpload({
 
             {/* Lightbox Dialog */}
             <Dialog open={!!lightboxImage} onOpenChange={() => closeLightbox()}>
-                <DialogContent className="max-w-[90vw] max-h-[90vh] p-0 bg-black/95 border-none overflow-hidden text-white">
+                <DialogContent showCloseButton={false} className="max-w-[90vw] max-h-[90vh] p-0 bg-black/95 border-none overflow-hidden text-white">
                     <DialogHeader className="sr-only">
                         <DialogTitle>Visualização da Imagem</DialogTitle>
                         <DialogDescription>Imagem ampliada da galeria</DialogDescription>

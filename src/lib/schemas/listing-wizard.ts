@@ -10,9 +10,9 @@ const contactSchema = z.object({
 })
 
 const locationSchema = z.object({
-    address: z.string().min(5, "Endereço muito curto"),
-    city: z.string().min(2, "Cidade obrigatória"),
-    state: z.string().min(2, "Selecione a província (prefeitura)"),
+    address: z.string().optional(),
+    city: z.string().optional(),
+    state: z.string().optional(),
     zipCode: z.string().optional(),
 })
 
@@ -55,24 +55,33 @@ export const businessSchema = z.object({
 // --- Event Schemas ---
 export const eventSchema = z.object({
     type: z.literal('event'),
+    // Organizer (required - links to a business)
+    organizerId: z.string().min(1, "Selecione o organizador do evento"),
     // Step 1: Basic
     title: z.string().min(3, "Nome do evento obrigatório"),
     description: z.string().min(20, "Descrição muito curta"),
-    category: z.string().optional(),
-    // Step 2: Date & Loc
+    // Step 2: Date & Location
     startDate: z.string().min(1, "Data de início obrigatória"),
     endDate: z.string().optional(),
     startTime: z.string().min(1, "Horário de início obrigatório"),
-    location: locationSchema,
-    isOnline: z.boolean().default(false),
-    // Step 3: Price
+    endTime: z.string().optional(),
+    eventMode: z.enum(['presencial', 'online', 'hybrid']).default('presencial'),
+    location: locationSchema.partial(), // Location optional for online events
+    // Step 2: Price & Tickets
     price: z.number().min(0).optional(),
-    ticketUrl: z.string().url("URL do ingresso inválida").optional().or(z.literal('')),
-    // Step 4: Contact
-    organizer: z.string().min(2, "Nome do organizador obrigatório"),
-    contact: contactSchema,
-    // Step 5: Gallery
-    galleryImages: z.array(z.string()).optional().default([]),
+    priceCurrency: z.string().default("JPY"),
+    ticketUrl: z.string().optional(),
+    // Step 3: Contact (Dynamic - same pattern as business)
+    contactsData: z.array(z.object({
+        type: z.enum(['whatsapp', 'phone', 'email', 'instagram', 'website', 'facebook', 'linkedin', 'other']),
+        value: z.string().min(1, "Preencha o contato"),
+        responsible: z.string().optional()
+    })).default([]),
+    // Step 4: Media
+    coverImage: z.string().nullable().optional(),
+    galleryImages: z.array(z.string()).default([]),
+    // Control
+    isPublished: z.boolean().default(false),
 })
 
 // --- Job Schemas ---

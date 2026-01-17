@@ -22,9 +22,13 @@ export async function getEvents() {
                 cover_image_url: true,
                 starts_at: true,
                 ends_at: true,
+                price_amount: true,
+                price_currency: true,
                 status: true,
                 is_active: true,
+                event_mode: true,
                 created_at: true,
+                updated_at: true,
             },
             orderBy: {
                 created_at: 'desc'
@@ -42,3 +46,4 @@ export async function getEvents() {
         return { success: false, error: "Failed to fetch events" }
     }
 }
+

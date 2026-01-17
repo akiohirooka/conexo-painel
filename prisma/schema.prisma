@@ -359,6 +359,7 @@ enum ListingStatus {
 model events {
   id              BigInt        @id @default(autoincrement())
   clerk_user_id   String        @db.VarChar(255)
+  organizer_id    BigInt?       // FK to businesses table (organizer)
   title           String
   slug            String        @unique
   description     String        @db.Text
@@ -372,15 +373,26 @@ model events {
   is_active       Boolean       @default(true)
   published_at    DateTime?     @db.Timestamptz(6)
   
+  // Location
+  event_mode      String        @default("presencial") // presencial, online, hybrid
+  address         String?
+  city            String?
+  state           String?
+  
   // Contacts
   contacts_data   Json?
   approved_by     String?       @db.VarChar(255)
   approved_at     DateTime?     @db.Timestamptz(6)
   rejected_reason String?       @db.Text
+  
+  // Gallery
+  gallery_images  String[]
+  
   created_at      DateTime      @default(now()) @db.Timestamptz(6)
   updated_at      DateTime      @default(now()) @db.Timestamptz(6)
 
   @@index([clerk_user_id])
+  @@index([organizer_id])
   @@index([status])
   @@index([starts_at])
 }

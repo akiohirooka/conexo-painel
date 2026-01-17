@@ -10,9 +10,11 @@ export function EventBasicStep() {
 
     return (
         <div className="space-y-6">
-            <div className="space-y-2">
-                <h3 className="text-lg font-medium">Informações do Evento</h3>
-                <p className="text-sm text-muted-foreground">Conte sobre o seu evento.</p>
+            <div className="flex items-center justify-between border-b pb-6">
+                <div className="space-y-1">
+                    <h3 className="text-lg font-medium">Informações do Evento</h3>
+                    <p className="text-sm text-muted-foreground">Conte sobre o seu evento.</p>
+                </div>
             </div>
 
             <FormField

@@ -21,9 +21,15 @@ export async function getJobs() {
                 slug: true,
                 company_name: true,
                 employment_type: true,
+                work_model: true,
+                salary_amount: true,
+                salary_currency: true,
+                salary_unit: true,
+                cover_image_url: true,
                 status: true,
                 is_active: true,
                 created_at: true,
+                updated_at: true,
             },
             orderBy: {
                 created_at: 'desc'

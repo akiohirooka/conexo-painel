@@ -400,28 +400,50 @@ model events {
 model jobs {
   id              BigInt        @id @default(autoincrement())
   clerk_user_id   String        @db.VarChar(255)
+  contractor_id   BigInt?       // FK to businesses table (contratante)
   company_name    String?
   title           String
   slug            String        @unique
   description     String        @db.Text
   employment_type String?
   category        String?
+  work_model      String        @default("onsite") // onsite, hybrid, remote
   salary_amount   Int?
   salary_currency String        @default("JPY")
   salary_unit     String?
   is_featured     Boolean       @default(false)
   status          ListingStatus @default(DRAFT)
   is_active       Boolean       @default(true)
+  is_published    Boolean       @default(false)
   published_at    DateTime?     @db.Timestamptz(6)
+
+  // Location (para vagas presenciais/híbridas)
+  address         String?
+  city            String?
+  state           String?
+
+  // Application
+  application_url String?
+  contact_email   String?
+
+  // Media
+  cover_image_url String?
+  gallery_images  String[]
+
+  // Details
+  requirements    String[]      @default([])
+  benefits        String[]      @default([])
 
   // Contacts
   contacts_data   Json?
+
   approved_by     String?       @db.VarChar(255)
   approved_at     DateTime?     @db.Timestamptz(6)
   rejected_reason String?       @db.Text
   created_at      DateTime      @default(now()) @db.Timestamptz(6)
   updated_at      DateTime      @default(now()) @db.Timestamptz(6)
 
+  @@index([contractor_id])
   @@index([clerk_user_id])
   @@index([status])
   @@index([is_featured])

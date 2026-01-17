@@ -87,31 +87,44 @@ export const eventSchema = z.object({
 // --- Job Schemas ---
 export const jobSchema = z.object({
     type: z.literal('job'),
+    // Contratante (required - links to a business)
+    contractorId: z.string().min(1, "Selecione o contratante"),
     // Step 1: Basic
     title: z.string().min(3, "Cargo obrigatório"),
-    company: z.string().min(2, "Empresa obrigatória"),
-    workModel: z.enum(['remote', 'hybrid', 'onsite']),
-    // Step 2: Loc & Salary
+    companyName: z.string().optional(),
+    category: z.string().optional(),
+    employmentType: z.string().optional(), // CLT, PJ, Freelancer, etc.
+    workModel: z.enum(['remote', 'hybrid', 'onsite']).default('onsite'),
+    // Step 2: Location & Salary
     location: z.object({
+        address: z.string().optional(),
         city: z.string().optional(),
         state: z.string().optional(),
-    }).optional(), // Optional for remote
+    }).optional(),
     salary: z.object({
         amount: z.number().min(0).optional(),
-        period: z.enum(['hour', 'month', 'year']).default('month'),
-        currency: z.string().default('BRL'),
+        unit: z.enum(['hour', 'month', 'year']).default('month'),
+        currency: z.string().default('JPY'),
         negotiable: z.boolean().default(false),
     }).optional(),
     // Step 3: Description
-    description: z.string().min(50, "Descreva bem a vaga"),
-    // Step 4: Reqs & Bens
-    requirements: z.array(z.string()).min(1, "Adicione pelo menos 1 requisito"),
-    benefits: z.array(z.string()).optional(),
-    // Step 5: Contact
+    description: z.string().min(20, "Descrição muito curta"),
+    // Step 4: Requirements
+    requirements: z.array(z.string()).default([]),
+    benefits: z.array(z.string()).default([]),
+    // Step 5: Contacts (Dynamic)
+    contactsData: z.array(z.object({
+        type: z.enum(['whatsapp', 'phone', 'email', 'instagram', 'website', 'facebook', 'linkedin', 'other']),
+        value: z.string().min(1, "Preencha o contato"),
+        responsible: z.string().optional()
+    })).default([]),
     applicationUrl: z.string().url("URL inválida").optional().or(z.literal('')),
     contactEmail: z.string().email("Email inválido").optional().or(z.literal('')),
-    // Step 6: Cover
-    coverImage: z.string().optional(),
+    // Step 6: Media
+    coverImage: z.string().nullable().optional(),
+    galleryImages: z.array(z.string()).default([]),
+    // Control
+    isPublished: z.boolean().default(false),
 })
 
 // Union type

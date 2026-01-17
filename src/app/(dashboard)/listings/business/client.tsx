@@ -94,7 +94,7 @@ function BusinessCard({ business }: { business: BusinessColumn }) {
 
     return (
         <div
-            onClick={() => router.push(`/listings/${business.id}/edit`)}
+            onClick={() => router.push(`/listings/${business.id}/edit?type=business`)}
             className="group relative flex flex-col overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm transition-all hover:shadow-md hover:border-primary/50 cursor-pointer"
         >
             <div className="absolute top-2 right-2 z-10">
@@ -112,7 +112,7 @@ function BusinessCard({ business }: { business: BusinessColumn }) {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild>
-                            <Link href={`/listings/${business.id}/edit`}>
+                            <Link href={`/listings/${business.id}/edit?type=business`}>
                                 <Edit className="mr-2 h-4 w-4" />
                                 Editar
                             </Link>

@@ -3,6 +3,7 @@ import { WizardLayout } from '@/components/listing-wizard/wizard-layout'
 import { StepRenderer } from '@/components/listing-wizard/step-renderer'
 import { getBusiness } from '@/actions/get-business'
 import { getEvent } from '@/actions/get-event'
+import { getJob } from '@/actions/get-job'
 
 interface EditListingPageProps {
     params: { id: string }
@@ -12,6 +13,32 @@ interface EditListingPageProps {
 export default async function EditListingPage({ params, searchParams }: EditListingPageProps) {
     const { id } = params
     const listingType = searchParams.type || 'business'
+
+    if (listingType === 'job') {
+        // @ts-ignore - getJob returns Promise
+        const { success, data, error } = await getJob(id)
+
+        if (!success || !data) {
+            return (
+                <div className="p-8 text-sm text-destructive">
+                    {error || "Não foi possível carregar esta vaga."}
+                </div>
+            )
+        }
+
+        return (
+            <WizardProvider
+                initialType="job"
+                initialData={data}
+                initialEditId={data.id}
+                initialIsEditMode
+            >
+                <WizardLayout>
+                    <StepRenderer />
+                </WizardLayout>
+            </WizardProvider>
+        )
+    }
 
     if (listingType === 'event') {
         const { success, data, error } = await getEvent(id)

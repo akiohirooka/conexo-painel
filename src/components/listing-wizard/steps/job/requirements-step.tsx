@@ -47,7 +47,7 @@ export function JobRequirementsStep() {
 
             {/* Requirements */}
             <div className="space-y-3">
-                <FormLabel>Requisitos *</FormLabel>
+                <FormLabel>Requisitos * <span className="text-xs font-normal text-muted-foreground ml-1">(Pressione Enter para adicionar)</span></FormLabel>
                 <div className="flex gap-2">
                     <Input
                         value={newReq}
@@ -81,7 +81,7 @@ export function JobRequirementsStep() {
 
             {/* Benefits */}
             <div className="space-y-3 pt-4 border-t">
-                <FormLabel>Benefícios</FormLabel>
+                <FormLabel>Benefícios <span className="text-xs font-normal text-muted-foreground ml-1">(Pressione Enter para adicionar)</span></FormLabel>
                 <div className="flex gap-2">
                     <Input
                         value={newBen}
@@ -93,20 +93,21 @@ export function JobRequirementsStep() {
                         <Plus className="w-4 h-4" />
                     </Button>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-col gap-2">
                     {benefits.map((item: string, i: number) => (
-                        <Badge key={i} variant="secondary" className="pl-3 pr-1 py-1">
-                            {item}
+                        <div key={i} className="flex items-start gap-2 text-sm bg-muted/40 p-2 rounded">
+                            <Check className="w-4 h-4 text-green-600 mt-0.5 shrink-0" />
+                            <span className="flex-1">{item}</span>
                             <Button
                                 type="button"
                                 variant="ghost"
                                 size="icon"
-                                className="h-4 w-4 ml-1 hover:bg-transparent text-muted-foreground hover:text-foreground"
+                                className="h-5 w-5 hover:bg-transparent text-muted-foreground hover:text-red-500"
                                 onClick={() => removeBen(i)}
                             >
                                 <X className="w-3 h-3" />
                             </Button>
-                        </Badge>
+                        </div>
                     ))}
                 </div>
             </div>

@@ -36,12 +36,7 @@ export function Topbar() {
             </div>
 
             <div className="flex items-center gap-4">
-                <Button asChild className="px-3 sm:px-6 font-medium shadow-sm">
-                    <Link href="/listings/new">
-                        <Plus className="h-4 w-4 sm:mr-2" />
-                        <span className="hidden sm:inline">Anúncio</span>
-                    </Link>
-                </Button>
+
 
                 <Button variant="ghost" size="icon" className="text-muted-foreground" aria-label="Notificações">
                     <Bell className="h-5 w-5" />

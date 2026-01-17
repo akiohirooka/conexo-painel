@@ -6,20 +6,60 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 
+// Japanese prefectures list
+const prefectures = [
+    "Aichi", "Akita", "Aomori", "Chiba", "Ehime", "Fukui", "Fukuoka", "Fukushima", "Gifu", "Gunma",
+    "Hiroshima", "Hokkaido", "Hyogo", "Ibaraki", "Ishikawa", "Iwate", "Kagawa", "Kagoshima", "Kanagawa",
+    "Kochi", "Kumamoto", "Kyoto", "Mie", "Miyagi", "Miyazaki", "Nagano", "Nagasaki", "Nara", "Niigata",
+    "Oita", "Okayama", "Okinawa", "Osaka", "Saga", "Saitama", "Shiga", "Shimane", "Shizuoka", "Tochigi",
+    "Tokushima", "Tokyo", "Tottori", "Toyama", "Wakayama", "Yamagata", "Yamaguchi", "Yamanashi"
+]
+
 export function JobLocationSalaryStep() {
     const { control, watch } = useFormContext()
     const workModel = watch("workModel")
 
+    // Show location fields for onsite and hybrid modes
+    const showLocationFields = workModel !== 'remote'
+
     return (
         <div className="space-y-8">
             {/* Location */}
-            {workModel !== 'remote' && (
+            {showLocationFields && (
                 <div className="space-y-4 animate-in fade-in">
-                    <div className="space-y-2">
-                        <h3 className="text-lg font-medium">Localização</h3>
-                        <p className="text-sm text-muted-foreground">Onde a vaga é baseada?</p>
+                    <div className="flex items-center justify-between border-b pb-6">
+                        <div className="space-y-1">
+                            <h3 className="text-lg font-medium">Localização</h3>
+                            <p className="text-sm text-muted-foreground">Onde a vaga é baseada?</p>
+                        </div>
                     </div>
+
                     <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                            control={control}
+                            name="location.state"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Província (Prefeitura)</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value || ""}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Selecione a província" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent className="max-h-[300px]">
+                                            {prefectures.map((pref) => (
+                                                <SelectItem key={pref} value={pref}>
+                                                    {pref}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
                         <FormField
                             control={control}
                             name="location.city"
@@ -27,25 +67,36 @@ export function JobLocationSalaryStep() {
                                 <FormItem>
                                     <FormLabel>Cidade</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="Cidade" {...field} />
+                                        <Input placeholder="Cidade" {...field} value={field.value || ""} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
-                        <FormField
-                            control={control}
-                            name="location.state"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Estado</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="UF" maxLength={2} {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                    </div>
+
+                    <FormField
+                        control={control}
+                        name="location.address"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Endereço (Opcional)</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Rua, Número, Bairro" {...field} value={field.value || ""} />
+                                </FormControl>
+                                <FormDescription>O endereço completo pode ser mostrado aos candidatos.</FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+            )}
+
+            {!showLocationFields && (
+                <div className="flex items-center justify-between border-b pb-6">
+                    <div className="space-y-1">
+                        <h3 className="text-lg font-medium">Vaga 100% Remota</h3>
+                        <p className="text-sm text-muted-foreground">Não é necessário informar localização para vagas remotas.</p>
                     </div>
                 </div>
             )}
@@ -63,13 +114,14 @@ export function JobLocationSalaryStep() {
                         name="salary.amount"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Valor</FormLabel>
+                                <FormLabel>Valor (¥)</FormLabel>
                                 <FormControl>
                                     <Input
                                         type="number"
-                                        placeholder="0.00"
+                                        placeholder="0"
                                         {...field}
-                                        onChange={e => field.onChange(parseFloat(e.target.value))}
+                                        value={field.value || ""}
+                                        onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
                                     />
                                 </FormControl>
                                 <FormMessage />
@@ -79,11 +131,11 @@ export function JobLocationSalaryStep() {
 
                     <FormField
                         control={control}
-                        name="salary.period"
+                        name="salary.unit"
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Período</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value || 'month'}>
+                                <Select onValueChange={field.onChange} value={field.value || 'month'}>
                                     <FormControl>
                                         <SelectTrigger>
                                             <SelectValue />

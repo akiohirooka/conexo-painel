@@ -27,7 +27,8 @@ import { JobBasicStep } from './steps/job/basic-info'
 import { JobLocationSalaryStep } from './steps/job/location-salary'
 import { JobDescriptionStep } from './steps/job/description-step'
 import { JobRequirementsStep } from './steps/job/requirements-step'
-import { JobContactCoverStep } from './steps/job/contact-cover'
+import { JobContactStep } from './steps/job/contact-step'
+import { JobGalleryStep } from './steps/job/gallery-step'
 
 // Placeholder imports for step components (to be implemented)
 // We will replace these with real components in next steps
@@ -116,13 +117,22 @@ function StepContent({ initialData }: { initialData?: Record<string, unknown> | 
         if (type === 'job') {
             return {
                 ...common,
+                contractorId: "",
                 title: "",
-                company: "",
+                category: "",
+                employmentType: "",
                 workModel: "onsite",
                 description: "",
                 requirements: [],
-                salary: { amount: 0, period: "month", currency: "BRL", negotiable: false },
-                location: { city: "", state: "" }
+                benefits: [],
+                salary: { amount: 0, unit: "month", currency: "JPY", negotiable: false },
+                location: { address: "", city: "", state: "" },
+                contactsData: [],
+                applicationUrl: "",
+                contactEmail: "",
+                coverImage: "",
+                galleryImages: [],
+                isPublished: false,
             }
         }
 
@@ -152,6 +162,15 @@ function StepContent({ initialData }: { initialData?: Record<string, unknown> | 
                 ...eventDefaults,
                 ...initialData,
                 location: { ...eventDefaults.location, ...(initialData as any).location },
+            }
+        }
+        if (listingType === 'job') {
+            const jobDefaults = baseDefaults as any
+            return {
+                ...jobDefaults,
+                ...initialData,
+                location: { ...jobDefaults.location, ...(initialData as any).location },
+                salary: { ...jobDefaults.salary, ...(initialData as any).salary },
             }
         }
         return { ...baseDefaults, ...initialData }
@@ -200,7 +219,8 @@ function StepContent({ initialData }: { initialData?: Record<string, unknown> | 
             case 1: return <JobLocationSalaryStep />
             case 2: return <JobDescriptionStep />
             case 3: return <JobRequirementsStep />
-            case 4: return <JobContactCoverStep />
+            case 4: return <JobContactStep />
+            case 5: return <JobGalleryStep />
             default: return null
         }
     }

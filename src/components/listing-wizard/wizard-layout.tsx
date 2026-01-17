@@ -11,6 +11,7 @@ import { Switch } from '@/components/ui/switch'
 import { Controller } from 'react-hook-form'
 import { getUserBusinesses } from '@/actions/get-user-businesses'
 import { updateEventOrganizer } from '@/actions/update-event-organizer'
+import { updateJobContractor } from '@/actions/update-job-contractor'
 import Link from 'next/link'
 import {
     Dialog,
@@ -52,9 +53,9 @@ export function WizardLayout({ children }: WizardLayoutProps) {
     const [confirmedOrganizer, setConfirmedOrganizer] = useState<BusinessOption | null>(null)
     const [isPublished, setIsPublished] = useState(false)
 
-    // Load user businesses when event type is selected
+    // Load user businesses when event or job type is selected
     useEffect(() => {
-        if (listingType === 'event') {
+        if (listingType === 'event' || listingType === 'job') {
             setLoadingBusinesses(true)
             getUserBusinesses().then(result => {
                 if (result.success) {
@@ -67,14 +68,29 @@ export function WizardLayout({ children }: WizardLayoutProps) {
 
     // Initialize from form value when editing
     useEffect(() => {
-        if (!form || listingType !== 'event') return
+        if (!form) return
 
-        const formOrganizerId = form.getValues('organizerId')
-        if (formOrganizerId && userBusinesses.length > 0) {
-            const found = userBusinesses.find(b => b.id === formOrganizerId)
-            if (found) {
-                setConfirmedOrganizer(found)
-                setSelectedOrganizerId(formOrganizerId)
+        // For events: organizerId
+        if (listingType === 'event') {
+            const formOrganizerId = form.getValues('organizerId')
+            if (formOrganizerId && userBusinesses.length > 0) {
+                const found = userBusinesses.find(b => b.id === formOrganizerId)
+                if (found) {
+                    setConfirmedOrganizer(found)
+                    setSelectedOrganizerId(formOrganizerId)
+                }
+            }
+        }
+
+        // For jobs: contractorId
+        if (listingType === 'job') {
+            const formContractorId = form.getValues('contractorId')
+            if (formContractorId && userBusinesses.length > 0) {
+                const found = userBusinesses.find(b => b.id === formContractorId)
+                if (found) {
+                    setConfirmedOrganizer(found)
+                    setSelectedOrganizerId(formContractorId)
+                }
             }
         }
 
@@ -88,34 +104,41 @@ export function WizardLayout({ children }: WizardLayoutProps) {
         const selected = userBusinesses.find(b => b.id === selectedOrganizerId)
         if (selected && form) {
             setConfirmedOrganizer(selected)
+
             // Set form value with proper options to trigger validation
-            form.setValue('organizerId', selected.id, {
+            const fieldName = listingType === 'job' ? 'contractorId' : 'organizerId'
+            form.setValue(fieldName, selected.id, {
                 shouldValidate: true,
                 shouldDirty: true,
                 shouldTouch: true
             })
             setIsOrganizerModalOpen(false)
 
-            // Auto-save to database if editing existing event
+            // Auto-save to database if editing
             if (editId) {
-                const result = await updateEventOrganizer(editId, selected.id)
+                const isJob = listingType === 'job'
+                const result = isJob
+                    ? await updateJobContractor(editId, selected.id)
+                    : await updateEventOrganizer(editId, selected.id)
+
                 if (result.success) {
                     toast({
-                        title: 'Organizador salvo!',
-                        description: `${selected.name} foi definido como organizador.`,
+                        title: isJob ? 'Contratante salvo!' : 'Organizador salvo!',
+                        description: `${selected.name} foi definido como ${isJob ? 'contratante' : 'organizador'}.`,
                         variant: 'success',
                     })
                 } else {
                     toast({
                         title: 'Erro ao salvar',
-                        description: result.error || 'Não foi possível salvar o organizador.',
+                        description: result.error || `Não foi possível salvar o ${isJob ? 'contratante' : 'organizador'}.`,
                         variant: 'destructive',
                     })
                 }
             } else {
+                const isJob = listingType === 'job'
                 toast({
-                    title: 'Organizador selecionado!',
-                    description: `${selected.name} será o organizador deste evento.`,
+                    title: isJob ? 'Contratante selecionado!' : 'Organizador selecionado!',
+                    description: `${selected.name} será ${isJob ? 'o contratante desta vaga' : 'o organizador deste evento'}.`,
                     variant: 'success',
                 })
             }
@@ -127,9 +150,12 @@ export function WizardLayout({ children }: WizardLayoutProps) {
 
         setIsSubmitting(true)
 
-        // Ensure organizerId is set before validation for events
+        // Ensure organizerId/contractorId is set before validation
         if (listingType === 'event' && confirmedOrganizer) {
             form.setValue('organizerId', confirmedOrganizer.id, { shouldValidate: false })
+        }
+        if (listingType === 'job' && confirmedOrganizer) {
+            form.setValue('contractorId', confirmedOrganizer.id, { shouldValidate: false })
         }
 
         const isValid = await form.trigger()
@@ -214,6 +240,44 @@ export function WizardLayout({ children }: WizardLayoutProps) {
                             return
                         }
                     }
+                } else if (listingType === 'job') {
+                    if (isEditMode && editId) {
+                        const { updateJob } = await import('@/actions/update-job')
+                        const result = await updateJob({ ...data, id: editId })
+
+                        if (result.success) {
+                            toast({
+                                title: 'Vaga atualizada com sucesso!',
+                                variant: 'success',
+                            })
+                            router.push('/listings/jobs')
+                        } else {
+                            console.error(result.error)
+                            toast({
+                                title: typeof result.error === 'string' ? result.error : 'Erro ao atualizar. Tente novamente.',
+                                variant: 'danger',
+                            })
+                            return
+                        }
+                    } else {
+                        const { createJob } = await import('@/actions/create-job')
+                        const result = await createJob(data)
+
+                        if (result.success) {
+                            toast({
+                                title: 'Vaga criada com sucesso!',
+                                variant: 'success',
+                            })
+                            router.push('/listings/jobs')
+                        } else {
+                            console.error(result.error)
+                            toast({
+                                title: typeof result.error === 'string' ? result.error : 'Erro ao criar vaga. Tente novamente.',
+                                variant: 'danger',
+                            })
+                            return
+                        }
+                    }
                 }
             } catch (error) {
                 console.error(error)
@@ -257,7 +321,7 @@ export function WizardLayout({ children }: WizardLayoutProps) {
     const stepsMap: Record<ListingType, string[]> = {
         business: ['Principal', 'Localização', 'Contatos', 'Horários', 'Mídia'],
         event: ['Básico', 'Data e Local', 'Contatos', 'Galeria'],
-        job: ['Básico', 'Detalhes', 'Descrição', 'Requisitos', 'Finalização']
+        job: ['Básico', 'Detalhes', 'Descrição', 'Requisitos', 'Contatos', 'Capa']
     }
 
     const currentStepNames = listingType ? stepsMap[listingType] : []
@@ -296,11 +360,12 @@ export function WizardLayout({ children }: WizardLayoutProps) {
         ? 'Atualize as informações do anúncio.'
         : 'Preencha as informações abaixo'
 
-    // Check if tabs should be disabled (for events without organizer)
-    const tabsDisabled = listingType === 'event' && !hasOrganizer && userBusinesses.length > 0
+    // Check if tabs should be disabled (for events/jobs without relation)
+    const needsRelation = listingType === 'event' || listingType === 'job'
+    const tabsDisabled = needsRelation && !hasOrganizer && userBusinesses.length > 0
 
     // No businesses: show create prompt
-    const noBusinesses = listingType === 'event' && userBusinesses.length === 0 && !loadingBusinesses
+    const noBusinesses = needsRelation && userBusinesses.length === 0 && !loadingBusinesses
 
     return (
         <div className="flex h-[calc(100vh-4rem)] flex-col bg-background">
@@ -310,10 +375,10 @@ export function WizardLayout({ children }: WizardLayoutProps) {
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                             <Building2 className="h-5 w-5" />
-                            Selecionar Organizador
+                            Selecionar {listingType === 'job' ? 'Contratante' : 'Organizador'}
                         </DialogTitle>
                         <DialogDescription>
-                            Escolha qual negócio será o organizador deste evento.
+                            Escolha qual negócio será {listingType === 'job' ? 'o contratante desta vaga' : 'o organizador deste evento'}.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="py-4 space-y-2 max-h-[300px] overflow-y-auto">
@@ -369,8 +434,8 @@ export function WizardLayout({ children }: WizardLayoutProps) {
                             </div>
                         </div>
 
-                        {/* Event Organizer Display/Selector */}
-                        {listingType === 'event' && form && (
+                        {/* Event Organizer / Job Contractor Display/Selector */}
+                        {needsRelation && form && (
                             <>
                                 {loadingBusinesses ? (
                                     <div className="text-sm text-muted-foreground">Carregando...</div>
@@ -378,7 +443,7 @@ export function WizardLayout({ children }: WizardLayoutProps) {
                                     <div className="flex items-center gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                                         <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
                                         <span className="text-sm text-amber-800">
-                                            Crie um negócio primeiro para ser o organizador.
+                                            Crie um negócio primeiro para ser {listingType === 'job' ? 'o contratante' : 'o organizador'}.
                                         </span>
                                         <Link href="/listings/new?type=business">
                                             <Button size="sm" variant="outline" className="gap-1 shrink-0">
@@ -388,26 +453,27 @@ export function WizardLayout({ children }: WizardLayoutProps) {
                                         </Link>
                                     </div>
                                 ) : hasOrganizer ? (
-                                    // Organizer confirmed - show name with edit option
+                                    // Organizer/Contractor confirmed - show name with edit option
                                     <button
                                         onClick={() => setIsOrganizerModalOpen(true)}
                                         className="flex items-center gap-3 p-2 pl-3 pr-4 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors"
                                     >
                                         <Check className="h-5 w-5 text-green-600 shrink-0" />
                                         <span className="text-sm font-medium text-green-800">
-                                            Organizador: {confirmedOrganizer?.name}
+                                            {listingType === 'job' ? 'Contratante: ' : 'Organizador: '}
+                                            {confirmedOrganizer?.name}
                                         </span>
                                         <ChevronRight className="h-4 w-4 text-green-600 ml-auto" />
                                     </button>
                                 ) : (
-                                    // No organizer - prompt to select
+                                    // No organizer/contractor - prompt to select
                                     <button
                                         onClick={() => setIsOrganizerModalOpen(true)}
                                         className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
                                     >
                                         <Building2 className="h-5 w-5 text-blue-600 shrink-0" />
                                         <span className="text-sm font-medium text-blue-800">
-                                            Clique para selecionar o organizador do evento
+                                            Clique para selecionar {listingType === 'job' ? 'o contratante' : 'o organizador'}
                                         </span>
                                         <ChevronRight className="h-4 w-4 text-blue-600 ml-auto" />
                                     </button>
@@ -415,8 +481,8 @@ export function WizardLayout({ children }: WizardLayoutProps) {
                             </>
                         )}
 
-                        {/* Publish Toggle - For Business and Events (only show when organizer selected for events) */}
-                        {(listingType === 'business' || (listingType === 'event' && hasOrganizer)) && form && (
+                        {/* Publish Toggle - For Business, Events and Jobs (only show when organizer/contractor selected) */}
+                        {(listingType === 'business' || ((listingType === 'event' || listingType === 'job') && hasOrganizer)) && form && (
                             <div className="flex items-center gap-2">
                                 <Switch
                                     checked={isPublished}
@@ -471,11 +537,11 @@ export function WizardLayout({ children }: WizardLayoutProps) {
 
             {/* Content Area */}
             <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-muted/5">
-                {/* Hidden field to register organizerId in form */}
-                {listingType === 'event' && form && (
+                {/* Hidden field to register organizerId/contractorId in form */}
+                {needsRelation && form && (
                     <Controller
                         control={form.control}
-                        name="organizerId"
+                        name={listingType === 'job' ? 'contractorId' : 'organizerId'}
                         defaultValue=""
                         render={({ field }) => (
                             <input
@@ -487,16 +553,18 @@ export function WizardLayout({ children }: WizardLayoutProps) {
                     />
                 )}
                 <div className="max-w-4xl mx-auto bg-card rounded-xl border shadow-sm p-4 md:p-8">
-                    {listingType === 'event' && !hasOrganizer && userBusinesses.length > 0 ? (
+                    {needsRelation && !hasOrganizer && userBusinesses.length > 0 ? (
                         <div className="flex flex-col items-center justify-center py-12 text-center">
                             <Building2 className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                            <h3 className="text-lg font-medium text-foreground mb-2">Selecione o Organizador</h3>
+                            <h3 className="text-lg font-medium text-foreground mb-2">
+                                Selecione {listingType === 'job' ? 'o Contratante' : 'o Organizador'}
+                            </h3>
                             <p className="text-sm text-muted-foreground max-w-md mb-6">
-                                Clique no botão azul acima para escolher qual negócio será o organizador deste evento.
+                                Clique no botão azul acima para escolher qual negócio {listingType === 'job' ? 'está contratando' : 'será o organizador'}.
                             </p>
                             <Button onClick={() => setIsOrganizerModalOpen(true)} className="gap-2">
                                 <Building2 className="h-4 w-4" />
-                                Selecionar Organizador
+                                Selecionar {listingType === 'job' ? 'Contratante' : 'Organizador'}
                             </Button>
                         </div>
                     ) : (

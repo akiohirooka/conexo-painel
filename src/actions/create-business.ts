@@ -114,8 +114,12 @@ export async function createBusiness(data: z.infer<typeof businessSchema>) {
 
                 // Extras
                 amenities: validatedData.amenities || [],
+                operating_modes: validatedData.operatingModes || [],
+                service_languages: validatedData.serviceLanguages || [],
+                payment_methods: validatedData.paymentMethods || [],
+                specialties: validatedData.specialties || [],
                 opening_hours: validatedData.openingHoursData,
-                gallery_images: validatedData.gallery.images || [],
+                gallery_images: validatedData.galleryImages || [],
 
                 // Defaults
                 is_verified: false,

@@ -14,6 +14,7 @@ import { BusinessBasicStep } from './steps/business/basic-info'
 import { BusinessLocationStep } from './steps/business/location-step'
 import { BusinessContactStep } from './steps/business/contact-step'
 import { BusinessHoursStep } from './steps/business/hours-step' // New
+import { BusinessExtrasStep } from './steps/business/extras-step' // New
 import { BusinessMediaStep } from './steps/business/media-step' // New
 
 // Event Steps
@@ -86,6 +87,10 @@ function StepContent({ initialData }: { initialData?: Record<string, unknown> | 
                 contactsData: [],
                 openingHoursData: [],
                 amenities: [],
+                operatingModes: [],
+                serviceLanguages: [],
+                paymentMethods: [],
+                specialties: [],
                 gallery: { images: [] },
                 // Legacy fields just in case
                 contact: { phone: "", whatsapp: "", email: "", website: "", instagram: "" }
@@ -154,6 +159,12 @@ function StepContent({ initialData }: { initialData?: Record<string, unknown> | 
                 location: { ...businessDefaults.location, ...(initialData as any).location },
                 gallery: { ...businessDefaults.gallery, ...(initialData as any).gallery },
                 contact: { ...businessDefaults.contact, ...(initialData as any).contact },
+                // Explicitly ensure arrays are preserved from initialData
+                operatingModes: (initialData as any).operatingModes || businessDefaults.operatingModes || [],
+                serviceLanguages: (initialData as any).serviceLanguages || businessDefaults.serviceLanguages || [],
+                paymentMethods: (initialData as any).paymentMethods || businessDefaults.paymentMethods || [],
+                specialties: (initialData as any).specialties || businessDefaults.specialties || [],
+                amenities: (initialData as any).amenities || businessDefaults.amenities || [],
             }
         }
         if (listingType === 'event') {
@@ -198,7 +209,8 @@ function StepContent({ initialData }: { initialData?: Record<string, unknown> | 
             case 1: return <BusinessLocationStep />
             case 2: return <BusinessContactStep />
             case 3: return <BusinessHoursStep />
-            case 4: return <BusinessMediaStep />
+            case 4: return <BusinessExtrasStep />
+            case 5: return <BusinessMediaStep />
             default: return null
         }
     }

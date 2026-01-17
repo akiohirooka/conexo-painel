@@ -64,6 +64,10 @@ export async function getBusiness(id: string) {
             coverImage: business.cover_image_url || "",
             galleryImages: business.gallery_images || [],
             amenities: business.amenities || [],
+            operatingModes: business.operating_modes || [],
+            serviceLanguages: business.service_languages || [],
+            paymentMethods: business.payment_methods || [],
+            specialties: business.specialties || [],
             contact: {
                 phone: business.phone || "",
                 whatsapp: business.whatsapp || "",

@@ -31,7 +31,7 @@ export function BusinessClientPage({ data }: BusinessClientPageProps) {
                     icon={Store}
                     action={{
                         label: "Criar Negócio",
-                        onClick: () => router.push("/listings/new")
+                        onClick: () => router.push("/listings/new?type=business")
                     }}
                 />
             </div>
@@ -48,7 +48,7 @@ export function BusinessClientPage({ data }: BusinessClientPageProps) {
 
             {!limitReached && (
                 <div
-                    onClick={() => router.push("/listings/new")}
+                    onClick={() => router.push("/listings/new?type=business")}
                     className="group relative flex flex-col items-center justify-center aspect-square overflow-hidden rounded-xl border border-dashed border-muted-foreground/25 bg-muted/5 transition-all hover:bg-muted/10 hover:border-primary/50 cursor-pointer"
                 >
                     <div className="flex flex-col items-center gap-2 text-muted-foreground group-hover:text-primary transition-colors">

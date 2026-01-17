@@ -184,6 +184,10 @@ model businesses {
   // Contact (Rich)
   contacts_data        Json?    // [{ type, value, responsible }]
   // Extras
+  operating_modes      String[]
+  service_languages    String[]
+  payment_methods      String[]
+  specialties          String[]
   amenities            String[]
   opening_hours        Json?    // Structured: [{ days: [], start, end }]
   logo_url             String?

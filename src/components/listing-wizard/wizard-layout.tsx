@@ -319,7 +319,7 @@ export function WizardLayout({ children }: WizardLayoutProps) {
 
     // Step definitions for tabs
     const stepsMap: Record<ListingType, string[]> = {
-        business: ['Principal', 'Localização', 'Contatos', 'Horários', 'Mídia'],
+        business: ['Principal', 'Localização', 'Contatos', 'Horários', 'Extras', 'Mídia'],
         event: ['Básico', 'Data e Local', 'Contatos', 'Galeria'],
         job: ['Básico', 'Detalhes', 'Descrição', 'Requisitos', 'Contatos', 'Capa']
     }

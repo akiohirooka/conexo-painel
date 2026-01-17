@@ -48,7 +48,12 @@ export const businessSchema = z.object({
     galleryImages: z.array(z.string()).optional().default([]),
 
     // Legacy/Optional placeholders if strictly needed by UI before migration
-    amenities: z.array(z.string()).optional(), // Kept in Extras/Media?
+    // Extras
+    operatingModes: z.array(z.string()).default([]),
+    serviceLanguages: z.array(z.string()).default([]),
+    paymentMethods: z.array(z.string()).default([]),
+    specialties: z.array(z.string()).default([]),
+    amenities: z.array(z.string()).default([]), // Now tag based
     contact: contactSchema.optional(), // Legacy support or just use dynamic
 })
 

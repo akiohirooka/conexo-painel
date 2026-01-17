@@ -5,63 +5,153 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescripti
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { X, Upload, Plus } from 'lucide-react'
+import { X, Upload, Plus, Check } from 'lucide-react'
 import { useState } from 'react'
+import { cn } from '@/lib/utils'
 
 export function BusinessExtrasStep() {
     const { control, watch, setValue } = useFormContext()
-    const amenities = watch("amenities") || []
-    const [newAmenity, setNewAmenity] = useState("")
 
-    const addAmenity = () => {
-        if (newAmenity.trim()) {
-            setValue("amenities", [...amenities, newAmenity.trim()])
-            setNewAmenity("")
+    // Tag-based fields
+    const amenities = watch("amenities") || []
+    const operatingModes = watch("operatingModes") || []
+    const serviceLanguages = watch("serviceLanguages") || []
+    const paymentMethods = watch("paymentMethods") || []
+
+    // Input-based fields
+    const specialties = watch("specialties") || []
+    const [newSpecialty, setNewSpecialty] = useState("")
+
+    // Predefined options
+    const OPERATING_MODES = [
+        "Consumo no local",
+        "Delivery local",
+        "Delivery todo Japão",
+        "Retirada na loja"
+    ]
+
+    const LANGUAGES = [
+        "Português",
+        "Japonês",
+        "Espanhol",
+        "Inglês"
+    ]
+
+    const AMENITIES_OPTIONS = [
+        "Estacionamento gratuito",
+        "Wi-Fi",
+        "Climatizado",
+        "Espaço Kids",
+        "Acessibilidade",
+        "Pet Friendly"
+    ]
+
+    const PAYMENT_METHODS = [
+        "Dinheiro",
+        "Apps/QR Code (PayPay, etc)",
+        "Cartão de Crédito"
+    ]
+
+    // Helpers
+    const toggleTag = (field: string, current: string[], value: string) => {
+        const updated = current.includes(value)
+            ? current.filter(item => item !== value)
+            : [...current, value]
+        setValue(field, updated)
+    }
+
+    const addSpecialty = () => {
+        if (newSpecialty.trim()) {
+            setValue("specialties", [...specialties, newSpecialty.trim()])
+            setNewSpecialty("")
         }
     }
 
-    const removeAmenity = (index: number) => {
-        setValue("amenities", amenities.filter((_: string, i: number) => i !== index))
+    const removeSpecialty = (index: number) => {
+        setValue("specialties", specialties.filter((_: string, i: number) => i !== index))
     }
+
+    const TagSection = ({ title, options, current, field }: { title: string, options: string[], current: string[], field: string }) => (
+        <div className="space-y-3">
+            <FormLabel>{title}</FormLabel>
+            <div className="flex flex-wrap gap-2">
+                {options.map((option) => {
+                    const isSelected = current.includes(option)
+                    return (
+                        <div
+                            key={option}
+                            onClick={() => toggleTag(field, current, option)}
+                            className={cn(
+                                "cursor-pointer rounded-full px-4 py-1.5 text-sm font-medium transition-all border select-none flex items-center gap-2",
+                                isSelected
+                                    ? "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
+                                    : "bg-background text-muted-foreground border-input hover:border-primary/50 hover:text-foreground"
+                            )}
+                        >
+                            {option}
+                            {isSelected && <Check className="h-3 w-3" />}
+                        </div>
+                    )
+                })}
+            </div>
+        </div>
+    )
 
     return (
         <div className="space-y-8">
             <div className="space-y-2">
-                <h3 className="text-lg font-medium">Extras e Galeria</h3>
-                <p className="text-sm text-muted-foreground">Destaque o que seu negócio oferece.</p>
+                <h3 className="text-lg font-medium">Detalhes do Negócio</h3>
+                <p className="text-sm text-muted-foreground">Selecione as características do seu estabelecimento.</p>
             </div>
 
-            {/* Opening Hours - Simple Text for now */}
-            <FormField
-                control={control}
-                name="openingHours"
-                render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Horário de Funcionamento</FormLabel>
-                        <FormControl>
-                            <Input placeholder="Ex: Seg-Sex 09:00 - 18:00" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                )}
+            {/* Operating Mode */}
+            <TagSection
+                title="Modo de Funcionamento"
+                options={OPERATING_MODES}
+                current={operatingModes}
+                field="operatingModes"
             />
 
-            {/* Amenities Input */}
+            {/* Service Language */}
+            <TagSection
+                title="Idioma de Atendimento"
+                options={LANGUAGES}
+                current={serviceLanguages}
+                field="serviceLanguages"
+            />
+
+            {/* Amenities */}
+            <TagSection
+                title="Comodidades"
+                options={AMENITIES_OPTIONS}
+                current={amenities}
+                field="amenities"
+            />
+
+            {/* Payment Methods */}
+            <TagSection
+                title="Formas de Pagamento"
+                options={PAYMENT_METHODS}
+                current={paymentMethods}
+                field="paymentMethods"
+            />
+
+            {/* Specialties (Input Style) */}
             <div className="space-y-3">
-                <FormLabel>Comodidades</FormLabel>
+                <FormLabel>Especialidades</FormLabel>
                 <div className="flex gap-2">
                     <Input
-                        value={newAmenity}
-                        onChange={(e) => setNewAmenity(e.target.value)}
-                        placeholder="Ex: Wi-Fi, Estacionamento, Pet Friendly"
-                        onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addAmenity())}
+                        value={newSpecialty}
+                        onChange={(e) => setNewSpecialty(e.target.value)}
+                        placeholder="Ex: Sushi, Rodízio, Cortes Especiais"
+                        onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addSpecialty())}
                     />
-                    <Button type="button" onClick={addAmenity} variant="secondary">
+                    <Button type="button" onClick={addSpecialty} variant="secondary">
                         <Plus className="w-4 h-4" />
                     </Button>
                 </div>
                 <div className="flex flex-wrap gap-2 min-h-[40px]">
-                    {amenities.map((item: string, i: number) => (
+                    {specialties.map((item: string, i: number) => (
                         <Badge key={i} variant="secondary" className="pl-3 pr-1 py-1">
                             {item}
                             <Button
@@ -69,33 +159,14 @@ export function BusinessExtrasStep() {
                                 variant="ghost"
                                 size="icon"
                                 className="h-4 w-4 ml-1 hover:bg-transparent text-muted-foreground hover:text-foreground"
-                                onClick={() => removeAmenity(i)}
+                                onClick={() => removeSpecialty(i)}
                             >
                                 <X className="w-3 h-3" />
                             </Button>
                         </Badge>
                     ))}
-                    {amenities.length === 0 && <span className="text-sm text-muted-foreground italic">Nenhuma comodidade adicionada.</span>}
+                    {specialties.length === 0 && <span className="text-sm text-muted-foreground italic">Nenhuma especialidade adicionada.</span>}
                 </div>
-            </div>
-
-            {/* Fake Gallery Upload */}
-            <div className="space-y-4">
-                <FormLabel>Galeria de Fotos</FormLabel>
-                <div className="border border-dashed rounded-lg p-8 text-center hover:bg-muted/50 transition-colors cursor-pointer bg-muted/20">
-                    <div className="flex flex-col items-center gap-2">
-                        <div className="p-4 rounded-full bg-background border shadow-sm">
-                            <Upload className="w-6 h-6 text-muted-foreground" />
-                        </div>
-                        <div>
-                            <p className="font-medium">Clique para fazer upload</p>
-                            <p className="text-xs text-muted-foreground">JPG, PNG ou WebP (max. 5MB)</p>
-                        </div>
-                    </div>
-                </div>
-                <FormDescription>
-                    Funcionalidade de upload simulada. As imagens não serão enviadas.
-                </FormDescription>
             </div>
         </div>
     )

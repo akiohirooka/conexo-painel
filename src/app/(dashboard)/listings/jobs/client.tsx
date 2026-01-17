@@ -64,7 +64,7 @@ export function JobClientPage({ data }: JobClientPageProps) {
             {!limitReached && (
                 <div
                     onClick={() => router.push("/listings/new?type=job")}
-                    className="group relative flex flex-col items-center justify-center aspect-video overflow-hidden rounded-xl border border-dashed border-muted-foreground/25 bg-muted/5 transition-all hover:bg-muted/10 hover:border-primary/50 cursor-pointer"
+                    className="group relative flex flex-col items-center justify-center aspect-square overflow-hidden rounded-xl border border-dashed border-muted-foreground/25 bg-muted/5 transition-all hover:bg-muted/10 hover:border-primary/50 cursor-pointer"
                 >
                     <div className="flex flex-col items-center gap-2 text-muted-foreground group-hover:text-primary transition-colors">
                         <div className="p-3 rounded-full bg-background shadow-sm border group-hover:border-primary/50 transition-colors">
@@ -167,7 +167,7 @@ function JobCard({ job }: { job: JobColumn }) {
                 </DropdownMenu>
             </div>
 
-            <div className="aspect-video w-full bg-muted relative overflow-hidden">
+            <div className="aspect-square w-full bg-muted relative overflow-hidden">
                 {coverUrl ? (
                     <img
                         src={coverUrl}

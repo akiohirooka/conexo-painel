@@ -109,6 +109,8 @@ export async function POST(req: NextRequest) {
       key = `business/${finalEntityId}/logo/logo.${extension}`;
     } else if (entity === 'business' && type === 'gallery') {
       key = `business/${finalEntityId}/gallery/${timestamp}-${safeFileName}`;
+    } else if (entity === 'business' && type === 'cover') {
+      key = `business/${finalEntityId}/cover/cover.${extension}`;
     } else if (entity === 'events' && type === 'cover') {
       key = `events/${finalEntityId}/cover/cover.${extension}`;
     } else if (entity === 'events' && type === 'gallery') {

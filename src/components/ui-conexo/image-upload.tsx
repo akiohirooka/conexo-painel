@@ -159,18 +159,39 @@ export function ImageUpload({
         }
     }
 
-    // Helper to get display URL
+    // Helper to get display URL with cache-busting
     const getDisplayUrl = (val: string) => {
-        if (val.startsWith('http')) return val
-        if (val.startsWith('blob:')) return val
-        // Use the public R2 base URL for relative paths
-        const domain = process.env.NEXT_PUBLIC_R2_BASE_URL || ''
-        if (!domain) {
-            console.warn('NEXT_PUBLIC_R2_BASE_URL not configured')
-            return val
+        let url = val
+        if (!val.startsWith('http') && !val.startsWith('blob:')) {
+            // Use the public R2 base URL for relative paths
+            const domain = process.env.NEXT_PUBLIC_R2_BASE_URL || ''
+            if (!domain) {
+                console.warn('NEXT_PUBLIC_R2_BASE_URL not configured')
+                return val
+            }
+            url = `${domain.replace(/\/+$/, '')}/${val}`
         }
-        return `${domain.replace(/\/+$/, '')}/${val}`
+        // Add cache-busting timestamp to prevent stale images
+        if (url.startsWith('http')) {
+            const separator = url.includes('?') ? '&' : '?'
+            return `${url}${separator}t=${Date.now()}`
+        }
+        return url
     }
+
+    // Calculate preview dimensions based on aspect ratio
+    const getPreviewDimensions = () => {
+        const baseSize = 150
+        if (aspectRatio >= 1) {
+            // Wide or square (e.g., 16:9 cover, 1:1 logo)
+            return { width: baseSize * Math.min(aspectRatio, 2), height: baseSize }
+        } else {
+            // Tall (portrait)
+            return { width: baseSize, height: baseSize / aspectRatio }
+        }
+    }
+
+    const previewDimensions = getPreviewDimensions()
 
     return (
         <>
@@ -195,7 +216,13 @@ export function ImageUpload({
                         </div>
                     </div>
                 ) : (
-                    <div className="relative group rounded-lg overflow-hidden border border-border bg-muted/20 h-[150px] w-[150px] flex items-center justify-center">
+                    <div
+                        className="relative group rounded-lg overflow-hidden border border-border bg-muted/20 flex items-center justify-center"
+                        style={{
+                            width: `${previewDimensions.width}px`,
+                            height: `${previewDimensions.height}px`
+                        }}
+                    >
                         {/* Display Image */}
                         <div className="relative w-full h-full">
                             {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -16,9 +16,7 @@ const locationSchema = z.object({
     zipCode: z.string().optional(),
 })
 
-const gallerySchema = z.object({
-    images: z.array(z.string()).optional(), // URLs (fake)
-})
+// Gallery is now a direct array of image URLs (max 5)
 
 // --- Business Schemas ---
 export const businessSchema = z.object({
@@ -47,7 +45,7 @@ export const businessSchema = z.object({
     // Step 5: Media
     logo: z.string().nullable().optional(),
     coverImage: z.string().nullable().optional(),
-    gallery: gallerySchema,
+    galleryImages: z.array(z.string()).optional().default([]),
 
     // Legacy/Optional placeholders if strictly needed by UI before migration
     amenities: z.array(z.string()).optional(), // Kept in Extras/Media?
@@ -74,7 +72,7 @@ export const eventSchema = z.object({
     organizer: z.string().min(2, "Nome do organizador obrigatório"),
     contact: contactSchema,
     // Step 5: Gallery
-    gallery: gallerySchema,
+    galleryImages: z.array(z.string()).optional().default([]),
 })
 
 // --- Job Schemas ---

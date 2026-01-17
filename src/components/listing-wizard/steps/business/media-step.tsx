@@ -4,7 +4,7 @@ import { useFormContext } from 'react-hook-form'
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from '@/components/ui/form'
 import { useWizard } from '@/components/listing-wizard/wizard-context'
 import { ImageUpload } from '@/components/ui-conexo/image-upload'
-import { Plus } from 'lucide-react'
+import { GalleryUpload } from '@/components/ui-conexo/gallery-upload'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Info } from 'lucide-react'
 
@@ -82,24 +82,30 @@ export function BusinessMediaStep() {
                 />
             </div>
 
-            <div className="space-y-4">
-                <div className="space-y-1">
-                    <h4 className="text-sm font-medium">Galeria de Fotos</h4>
-                    <p className="text-xs text-muted-foreground">Adicione fotos do ambiente, produtos ou serviços.</p>
-                </div>
-
-                {/* Mock Gallery List */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {[1, 2, 3, 4].map((i) => (
-                        <div key={i} className="aspect-square bg-muted rounded-md flex items-center justify-center border border-dashed text-muted-foreground text-xs">
-                            Foto {i}
-                        </div>
-                    ))}
-                    <div className="aspect-square bg-muted/30 rounded-md flex items-center justify-center border-2 border-dashed border-muted-foreground/20 hover:border-primary/50 cursor-pointer transition-colors">
-                        <Plus className="w-6 h-6 text-muted-foreground" />
-                    </div>
-                </div>
-            </div>
+            {/* Gallery */}
+            <FormField
+                control={control}
+                name="galleryImages"
+                render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Galeria de Fotos</FormLabel>
+                        <FormDescription>
+                            Adicione fotos do ambiente, produtos ou serviços. Máximo de 5 fotos.
+                        </FormDescription>
+                        <FormControl>
+                            <GalleryUpload
+                                value={field.value || []}
+                                onChange={field.onChange}
+                                entity="business"
+                                entityId={editId || 0}
+                                maxImages={5}
+                                disabled={!canUpload}
+                            />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
         </div>
     )
 }

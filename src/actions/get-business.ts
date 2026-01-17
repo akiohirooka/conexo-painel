@@ -62,7 +62,7 @@ export async function getBusiness(id: string) {
             openingHoursData,
             logo: business.logo_url || "",
             coverImage: business.cover_image_url || "",
-            gallery: { images: business.gallery_images || [] },
+            galleryImages: business.gallery_images || [],
             amenities: business.amenities || [],
             contact: {
                 phone: business.phone || "",

@@ -99,7 +99,7 @@ export async function updateBusiness(data: z.infer<typeof updateBusinessSchema>)
                 contacts_data: validatedData.contactsData.filter(c => c.type !== 'website'),
                 amenities: validatedData.amenities || [],
                 opening_hours: validatedData.openingHoursData,
-                gallery_images: validatedData.gallery.images || [],
+                // Note: gallery_images is managed by /api/upload, not here
                 logo_url: validatedData.logo || null,
                 cover_image_url: validatedData.coverImage || null,
                 is_published: validatedData.isPublished,

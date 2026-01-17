@@ -254,32 +254,44 @@ export async function DELETE(req: NextRequest) {
     // Extract key from URL if needed (e.g., if frontend sends full URL)
     const r2Key = extractR2KeyFromUrl(key);
 
+    console.log('[DELETE] Original key from request:', key);
+    console.log('[DELETE] Extracted R2 key:', r2Key);
+    console.log('[DELETE] R2_PUBLIC_BASE_URL:', process.env.R2_PUBLIC_BASE_URL);
+
     // Delete from R2
     if (!process.env.R2_BUCKET) {
       throw new Error('R2_BUCKET environment variable is missing');
     }
 
-    await r2.send(
-      new DeleteObjectCommand({
-        Bucket: process.env.R2_BUCKET,
-        Key: r2Key,
-      })
-    );
+    console.log('[DELETE] Attempting to delete from bucket:', process.env.R2_BUCKET);
+
+    try {
+      await r2.send(
+        new DeleteObjectCommand({
+          Bucket: process.env.R2_BUCKET,
+          Key: r2Key,
+        })
+      );
+      console.log('[DELETE] R2 delete command sent successfully for key:', r2Key);
+    } catch (r2Error: any) {
+      console.error('[DELETE] R2 delete error:', r2Error);
+      throw r2Error;
+    }
 
     // Update DB (only for business for now as requested)
     if (entity === 'business' && finalEntityId) {
       const idBigInt = BigInt(finalEntityId);
 
       if (type === 'gallery') {
-        // Need to fetch current array to remove item since Prisma doesn't have 'pull' for scalar lists easily in update without set? 
-        // Actually, for scalar lists (String[]), we can set it to the filtered array.
+        // Gallery stores full URLs, so we filter by the original key (which is the full URL)
         const current = await db.businesses.findUnique({
           where: { id: idBigInt },
           select: { gallery_images: true }
         });
 
         if (current?.gallery_images) {
-          const newGallery = current.gallery_images.filter(k => k !== r2Key);
+          // Filter out the URL that matches (key is the full URL from frontend)
+          const newGallery = current.gallery_images.filter(url => url !== key);
           await db.businesses.update({
             where: { id: idBigInt },
             data: { gallery_images: newGallery }

@@ -42,6 +42,15 @@ export async function createBusiness(data: z.infer<typeof businessSchema>) {
         return { success: false, error: `Usuário não sincronizado. Motivo: ${reason}` }
     }
 
+    // Check business limit
+    const existingCount = await db.businesses.count({
+        where: { clerk_user_id: userId }
+    })
+
+    if (existingCount >= 3) {
+        return { success: false, error: "Você atingiu o limite máximo de 3 negócios cadastrados." }
+    }
+
     // Server-side validation
     const result = businessSchema.safeParse(data)
 

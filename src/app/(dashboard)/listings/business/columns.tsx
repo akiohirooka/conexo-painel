@@ -28,6 +28,7 @@ export type BusinessColumn = {
     review_count: number
     city: string | null
     state: string | null
+    updated_at: Date
 }
 
 // Helper to get valid logo URL (handles both old relative paths and new full URLs)

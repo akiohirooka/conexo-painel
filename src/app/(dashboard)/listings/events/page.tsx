@@ -1,20 +1,23 @@
-import Link from "next/link"
-import { Plus } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { getEvents } from "@/actions/get-events"
+import { EventClientPage } from "./client"
 import { PageHeader } from "@/components/ui-conexo/page-header"
 
-export default function EventListingsPage() {
+export default async function EventListingsPage() {
+    const { data, success, error } = await getEvents()
+
+    if (!success) {
+        console.error(error)
+        return <div>Error loading events</div>
+    }
+
     return (
         <div className="flex flex-1 flex-col gap-6 p-6">
             <PageHeader
                 title="Meus Eventos"
                 description="Gerencie seus eventos cadastrados."
             />
-            <div className="rounded-xl border bg-card text-card-foreground shadow">
-                <div className="p-6">
-                    <p className="text-muted-foreground">Lista de eventos será exibida aqui.</p>
-                </div>
-            </div>
+
+            <EventClientPage data={data || []} />
         </div>
     )
 }

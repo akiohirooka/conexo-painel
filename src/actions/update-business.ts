@@ -108,7 +108,7 @@ export async function updateBusiness(data: z.infer<typeof updateBusinessSchema>)
             }
         })
 
-        revalidatePath('/listings/business')
+        revalidatePath('/dashboard/listings')
         return { success: true }
     } catch (error) {
         console.error("Failed to update business:", error)

@@ -29,6 +29,7 @@ export async function getBusinesses() {
                 rating: true,
                 city: true,
                 state: true,
+                updated_at: true,
             },
             orderBy: {
                 created_at: 'desc'

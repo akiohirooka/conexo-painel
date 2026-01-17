@@ -87,7 +87,7 @@ export function BusinessContactStep() {
                 </div>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
-                        <Button variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm flex items-center justify-center gap-2">
+                        <Button variant="default" size="sm" className="shadow-sm flex items-center justify-center gap-2">
                             <Plus className="w-4 h-4" />
                             Contato
                         </Button>
@@ -151,7 +151,7 @@ export function BusinessContactStep() {
                             </div>
                         </div>
                         <DialogFooter>
-                            <Button onClick={handleAdd} disabled={!newContact.type || !newContact.value} className="bg-blue-600 hover:bg-blue-700 text-white">
+                            <Button onClick={handleAdd} disabled={!newContact.type || !newContact.value}>
                                 Adicionar
                             </Button>
                         </DialogFooter>

@@ -11,6 +11,7 @@ import {
     ChevronRight,
     FileText,
     Heart,
+    HelpCircle,
     Home,
     MessageCircle,
     Settings2,
@@ -82,6 +83,11 @@ const navBusiness: NavItem[] = [
         title: "Conta",
         url: "/account",
         icon: User,
+    },
+    {
+        title: "Fale Conosco",
+        url: "/fale-conosco",
+        icon: HelpCircle,
     },
 ]
 

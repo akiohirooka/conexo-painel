@@ -3,28 +3,24 @@
 import * as React from "react"
 import { usePathname } from "next/navigation"
 import { site } from "@/lib/brand-config"
+import type { UserRole } from "@/lib/auth"
 import {
     Briefcase,
     Building2,
     Calendar,
     ChevronRight,
-    Frame,
+    FileText,
     Heart,
     Home,
-    LifeBuoy,
-    Map,
-    PieChart,
-    Send,
+    MessageCircle,
     Settings2,
-    SquareTerminal,
+    Star,
     User,
-    Users,
 } from "lucide-react"
 
 import {
     Sidebar,
     SidebarContent,
-    SidebarFooter,
     SidebarGroup,
     SidebarGroupContent,
     SidebarGroupLabel,
@@ -43,13 +39,6 @@ import {
     CollapsibleContent,
     CollapsibleTrigger,
 } from "@/components/ui/collapsible"
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 interface NavItem {
     title: string;
@@ -62,8 +51,8 @@ interface NavItem {
     }[];
 }
 
-// Menu items.
-const navMain: NavItem[] = [
+// Menu items for BUSINESS role (original menu - unchanged)
+const navBusiness: NavItem[] = [
     {
         title: "Dashboard",
         url: "/dashboard",
@@ -84,7 +73,11 @@ const navMain: NavItem[] = [
         url: "/listings/jobs",
         icon: Briefcase,
     },
-
+    {
+        title: "Mensagens",
+        url: "/mensagens",
+        icon: MessageCircle,
+    },
     {
         title: "Conta",
         url: "/account",
@@ -92,6 +85,41 @@ const navMain: NavItem[] = [
     },
 ]
 
+// Menu items for USER role (reduced menu)
+const navUser: NavItem[] = [
+    {
+        title: "Home",
+        url: "/home",
+        icon: Home,
+    },
+    {
+        title: "Currículo",
+        url: "/curriculo",
+        icon: FileText,
+    },
+    {
+        title: "Meus Reviews",
+        url: "/meus-reviews",
+        icon: Star,
+    },
+    {
+        title: "Favoritos",
+        url: "/favoritos",
+        icon: Heart,
+    },
+    {
+        title: "Conta",
+        url: "/account",
+        icon: User,
+    },
+    {
+        title: "Fale Conosco",
+        url: "/fale-conosco",
+        icon: MessageCircle,
+    },
+]
+
+// Admin menu (only for business role)
 const navAdmin: NavItem[] = [
     {
         title: "Admin",
@@ -114,9 +142,17 @@ const navAdmin: NavItem[] = [
     },
 ]
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+    userRole?: UserRole
+}
+
+export function AppSidebar({ userRole = 'user', ...props }: AppSidebarProps) {
     const { state } = useSidebar()
     const pathname = usePathname()
+
+    // Select menu based on role
+    const navMain = userRole === 'business' ? navBusiness : navUser
+    const showAdminSection = userRole === 'business'
 
     // Helper to check if a main item or its children are active
     const isItemActive = (item: NavItem) => {
@@ -193,43 +229,45 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     </SidebarMenu>
                 </SidebarGroup>
 
-                {/* Admin Group - Hidden for now or visible */}
-                <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-                    <SidebarGroupLabel>Administração</SidebarGroupLabel>
-                    <SidebarMenu>
-                        {navAdmin.map((item) => (
-                            <Collapsible
-                                key={item.title}
-                                asChild
-                                defaultOpen={isItemActive(item)}
-                                className="group/collapsible"
-                            >
-                                <SidebarMenuItem>
-                                    <CollapsibleTrigger asChild>
-                                        <SidebarMenuButton tooltip={item.title} isActive={isItemActive(item)}>
-                                            {item.icon && <item.icon />}
-                                            <span>{item.title}</span>
-                                            <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                                        </SidebarMenuButton>
-                                    </CollapsibleTrigger>
-                                    <CollapsibleContent>
-                                        <SidebarMenuSub>
-                                            {item.items?.map((subItem) => (
-                                                <SidebarMenuSubItem key={subItem.title}>
-                                                    <SidebarMenuSubButton asChild isActive={pathname === subItem.url}>
-                                                        <a href={subItem.url}>
-                                                            <span>{subItem.title}</span>
-                                                        </a>
-                                                    </SidebarMenuSubButton>
-                                                </SidebarMenuSubItem>
-                                            ))}
-                                        </SidebarMenuSub>
-                                    </CollapsibleContent>
-                                </SidebarMenuItem>
-                            </Collapsible>
-                        ))}
-                    </SidebarMenu>
-                </SidebarGroup>
+                {/* Admin Group - Only visible for business role */}
+                {showAdminSection && (
+                    <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+                        <SidebarGroupLabel>Administração</SidebarGroupLabel>
+                        <SidebarMenu>
+                            {navAdmin.map((item) => (
+                                <Collapsible
+                                    key={item.title}
+                                    asChild
+                                    defaultOpen={isItemActive(item)}
+                                    className="group/collapsible"
+                                >
+                                    <SidebarMenuItem>
+                                        <CollapsibleTrigger asChild>
+                                            <SidebarMenuButton tooltip={item.title} isActive={isItemActive(item)}>
+                                                {item.icon && <item.icon />}
+                                                <span>{item.title}</span>
+                                                <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                                            </SidebarMenuButton>
+                                        </CollapsibleTrigger>
+                                        <CollapsibleContent>
+                                            <SidebarMenuSub>
+                                                {item.items?.map((subItem) => (
+                                                    <SidebarMenuSubItem key={subItem.title}>
+                                                        <SidebarMenuSubButton asChild isActive={pathname === subItem.url}>
+                                                            <a href={subItem.url}>
+                                                                <span>{subItem.title}</span>
+                                                            </a>
+                                                        </SidebarMenuSubButton>
+                                                    </SidebarMenuSubItem>
+                                                ))}
+                                            </SidebarMenuSub>
+                                        </CollapsibleContent>
+                                    </SidebarMenuItem>
+                                </Collapsible>
+                            ))}
+                        </SidebarMenu>
+                    </SidebarGroup>
+                )}
             </SidebarContent>
             <SidebarRail />
         </Sidebar>

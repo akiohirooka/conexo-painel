@@ -297,14 +297,30 @@ model reviews {
   item_type     ReviewItemType
   item_id       BigInt
   rating        Int
+  title         String?
   comment       String?        @db.Text
   is_visible    Boolean        @default(true)
   created_at    DateTime       @default(now()) @db.Timestamptz(6)
   updated_at    DateTime       @default(now()) @db.Timestamptz(6)
 
+  response      review_responses?
+
   @@unique([clerk_user_id, item_type, item_id], map: "reviews_unique_user_item")
   @@index([item_type, item_id], map: "reviews_item_idx")
   @@index([clerk_user_id], map: "reviews_user_idx")
+}
+
+model review_responses {
+  id                String   @id @default(cuid())
+  review_id         BigInt   @unique
+  responder_user_id String   @db.VarChar(255) // clerk_user_id of business owner
+  body              String   @db.Text
+  created_at        DateTime @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime @default(now()) @db.Timestamptz(6)
+
+  review            reviews  @relation(fields: [review_id], references: [id], onDelete: Cascade)
+
+  @@index([responder_user_id])
 }
 
 model favorites {
@@ -473,4 +489,30 @@ enum NotificationType {
   WARNING
   SUCCESS
   ERROR
+}
+
+enum SupportCategory {
+  QUESTION
+  BUG
+  SUGGESTION
+  OTHER
+}
+
+/* ============================
+   SUPPORT TICKETS
+   ============================ */
+
+model support_tickets {
+  id            String          @id @default(cuid())
+  clerk_user_id String          @db.VarChar(255)
+  category      SupportCategory @default(OTHER)
+  subject       String
+  message       String          @db.Text
+  status        String          @default("open") // open, in_progress, resolved, closed
+  created_at    DateTime        @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime        @default(now()) @db.Timestamptz(6)
+
+  @@index([clerk_user_id])
+  @@index([status])
+  @@index([created_at])
 }

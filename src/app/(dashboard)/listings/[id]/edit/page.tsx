@@ -4,6 +4,7 @@ import { StepRenderer } from '@/components/listing-wizard/step-renderer'
 import { getBusiness } from '@/actions/get-business'
 import { getEvent } from '@/actions/get-event'
 import { getJob } from '@/actions/get-job'
+import { requireRole } from "@/lib/auth"
 
 interface EditListingPageProps {
     params: { id: string }
@@ -11,6 +12,8 @@ interface EditListingPageProps {
 }
 
 export default async function EditListingPage({ params, searchParams }: EditListingPageProps) {
+    await requireRole('business')
+
     const { id } = params
     const listingType = searchParams.type || 'business'
 

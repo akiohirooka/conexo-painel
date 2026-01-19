@@ -118,7 +118,7 @@ function BusinessCard({ business }: { business: BusinessColumn }) {
                             </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                            <Link href={`/negocio/${business.slug}`} target="_blank">
+                            <Link href={`https://conexo.jp/negocios/${business.slug}`} target="_blank">
                                 <Eye className="mr-2 h-4 w-4" />
                                 Ver no site
                             </Link>

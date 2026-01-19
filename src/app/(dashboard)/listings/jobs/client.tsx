@@ -158,7 +158,7 @@ function JobCard({ job }: { job: JobColumn }) {
                             </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                            <Link href={`/vaga/${job.slug}`} target="_blank">
+                            <Link href={`https://conexo.jp/empregos/${job.slug}`} target="_blank">
                                 <Eye className="mr-2 h-4 w-4" />
                                 Ver no site
                             </Link>

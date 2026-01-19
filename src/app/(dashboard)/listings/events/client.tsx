@@ -159,7 +159,7 @@ function EventCard({ event }: { event: EventColumn }) {
                             </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                            <Link href={`/evento/${event.slug}`} target="_blank">
+                            <Link href={`https://conexo.jp/eventos/${event.slug}`} target="_blank">
                                 <Eye className="mr-2 h-4 w-4" />
                                 Ver no site
                             </Link>

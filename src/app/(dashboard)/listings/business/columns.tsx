@@ -134,7 +134,7 @@ export const columns: Column<BusinessColumn>[] = [
                         </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                        <Link href={`/negocio/${item.slug}`} target="_blank">
+                        <Link href={`https://conexo.jp/negocios/${item.slug}`} target="_blank">
                             <Eye className="mr-2 h-4 w-4" />
                             Ver no site
                         </Link>

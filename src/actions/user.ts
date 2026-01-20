@@ -64,3 +64,32 @@ export async function updateUserProfile(data: {
         return { success: false, error: "Erro ao atualizar perfil" }
     }
 }
+
+export async function activateBusinessMode() {
+    const { userId } = await auth()
+
+    if (!userId) {
+        return { success: false, error: "Não autorizado" }
+    }
+
+    try {
+        await db.users.update({
+            where: {
+                clerk_user_id: userId
+            },
+            data: {
+                role: "business"
+            }
+        })
+
+        // Revalidate all paths that depend on user role
+        revalidatePath("/", "layout")
+        revalidatePath("/home")
+        revalidatePath("/dashboard")
+
+        return { success: true }
+    } catch (error) {
+        console.error("Failed to activate business mode:", error)
+        return { success: false, error: "Erro ao ativar modo business" }
+    }
+}

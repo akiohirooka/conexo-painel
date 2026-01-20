@@ -11,7 +11,7 @@ import type { CurrentUser, UserRole } from './types'
  * 
  * Behavior:
  * - If user is not logged in: redirects to /sign-in
- * - If user doesn't have required role: redirects to /no-access
+ * - If user doesn't have required role: redirects to /dashboard
  * - If user has required role: returns the CurrentUser object
  * 
  * @param requiredRole - The role required to access this page
@@ -37,8 +37,7 @@ export async function requireRole(requiredRole: UserRole): Promise<CurrentUser> 
 
     if (user.role !== requiredRole) {
         // User authenticated but doesn't have required role
-        // TODO: Create /no-access page when ready to implement
-        redirect('/no-access')
+        redirect('/dashboard')
     }
 
     return user
@@ -66,7 +65,7 @@ export async function requireAnyRole(allowedRoles: UserRole[]): Promise<CurrentU
     }
 
     if (!allowedRoles.includes(user.role)) {
-        redirect('/no-access')
+        redirect('/dashboard')
     }
 
     return user

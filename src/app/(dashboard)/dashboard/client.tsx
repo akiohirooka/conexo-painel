@@ -2,6 +2,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import {
     CheckCircle2,
     Clock,
@@ -28,6 +29,23 @@ import Link from "next/link"
 
 import { getDashboardData, DashboardListing as Listing } from "@/actions/dashboard/get-dashboard-data"
 import { TypeBadge } from "@/components/ui-conexo/type-badge"
+
+// Helper to get edit URL based on listing type/id
+function getEditUrl(listing: Listing): string {
+    const prefix = listing.id.split('-')[0]
+    const actualId = listing.id.split('-').slice(1).join('-')
+
+    switch (prefix) {
+        case 'biz':
+            return `/listings/${actualId}/edit?type=business`
+        case 'evt':
+            return `/listings/${actualId}/edit?type=event`
+        case 'job':
+            return `/listings/${actualId}/edit?type=job`
+        default:
+            return '/dashboard'
+    }
+}
 
 export function DashboardClient() {
     const [isLoading, setIsLoading] = useState(true)
@@ -96,7 +114,7 @@ export function DashboardClient() {
 
             {/* Recent Listings Section */}
             <div className="space-y-4">
-                <PageHeader title="Anúncios Recentes" />
+                <PageHeader title="Anúncios" />
 
                 {listings.length > 0 ? (
                     <div className="rounded-md border bg-card">
@@ -112,7 +130,11 @@ export function DashboardClient() {
                             </TableHeader>
                             <TableBody>
                                 {listings.map((listing) => (
-                                    <TableRow key={listing.id}>
+                                    <TableRow
+                                        key={listing.id}
+                                        className="cursor-pointer hover:bg-muted/50 transition-colors"
+                                        onClick={() => window.location.href = getEditUrl(listing)}
+                                    >
                                         <TableCell className="font-medium">{listing.title}</TableCell>
                                         <TableCell>
                                             <TypeBadge type={listing.type} />

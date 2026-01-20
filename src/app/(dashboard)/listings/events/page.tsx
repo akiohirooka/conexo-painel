@@ -1,10 +1,10 @@
 import { getEvents } from "@/actions/get-events"
 import { EventClientPage } from "./client"
 import { PageHeader } from "@/components/ui-conexo/page-header"
-import { requireAnyRole } from "@/lib/auth"
+import { requireRole } from "@/lib/auth"
 
 export default async function EventListingsPage() {
-    await requireAnyRole(['user', 'business'])
+    await requireRole('business')
 
     const { data, success, error } = await getEvents()
 

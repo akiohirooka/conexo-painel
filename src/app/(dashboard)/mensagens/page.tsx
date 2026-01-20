@@ -1,9 +1,9 @@
-import { requireAnyRole } from "@/lib/auth"
+import { requireRole } from "@/lib/auth"
 import { MensagensClient } from "./client"
 import { getBusinessReviews } from "@/actions/get-business-reviews"
 
 export default async function MensagensPage() {
-    await requireAnyRole(['user', 'business'])
+    await requireRole('business')
 
     const { data: reviews } = await getBusinessReviews()
 

@@ -1,4 +1,5 @@
-import { requireAuth } from "@/lib/auth"
+import { getCurrentUser } from "@/lib/auth"
+import { redirect } from "next/navigation"
 import { getUserStats } from "@/actions/get-user-reviews"
 import { PageHeader } from "@/components/ui-conexo/page-header"
 import { KpiCard } from "@/components/ui-conexo/kpi-card"
@@ -6,7 +7,17 @@ import { Star, Heart, FileText } from "lucide-react"
 import { ActivateBusinessCard } from "./activate-business-card"
 
 export default async function HomePage() {
-    const user = await requireAuth()
+    const user = await getCurrentUser()
+
+    if (!user) {
+        redirect('/sign-in')
+    }
+
+    // Business users should go to /dashboard
+    if (user.role === 'business') {
+        redirect('/dashboard')
+    }
+
     const { data: stats } = await getUserStats()
 
     return (

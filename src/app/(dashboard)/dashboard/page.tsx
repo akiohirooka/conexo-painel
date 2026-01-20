@@ -1,8 +1,8 @@
-import { requireAnyRole } from "@/lib/auth"
+import { requireRole } from "@/lib/auth"
 import { DashboardClient } from "./client"
 
 export default async function DashboardPage() {
-    await requireAnyRole(['user', 'business'])
+    await requireRole('business')
 
     return <DashboardClient />
 }

@@ -4,14 +4,17 @@ import { NextResponse } from 'next/server';
 
 
 export async function getUserFromClerkId(clerkId: string) {
-  let user = await db.user.findUnique({
-    where: { clerkId }
+  let user = await db.users.findUnique({
+    where: { clerk_user_id: clerkId }
   });
 
   if (!user) {
-    // Create user if doesn't exist
-    user = await db.user.create({
-      data: { clerkId }
+    // Create user if doesn't exist (with placeholder email since it's required)
+    user = await db.users.create({
+      data: {
+        clerk_user_id: clerkId,
+        email: `${clerkId}@placeholder.local`
+      }
     });
   }
 
@@ -27,10 +30,10 @@ export function createAuthErrorResponse(message: string, status: number = 401) {
 
 export async function validateUserAuthentication() {
   const { userId } = await auth();
-  
+
   if (!userId) {
     throw new Error('Unauthorized');
   }
-  
+
   return userId;
 }

@@ -128,6 +128,25 @@ export async function createJob(data: z.infer<typeof jobSchema>) {
 
     } catch (error) {
         console.error("Failed to create job:", error)
+
+        // Handle Prisma unique constraint violations (P2002)
+        if (error && typeof error === 'object' && 'code' in error) {
+            const prismaError = error as { code: string; meta?: { target?: string[] } }
+            if (prismaError.code === 'P2002') {
+                const target = prismaError.meta?.target
+                if (target?.includes('slug') || target?.includes('title')) {
+                    return {
+                        success: false,
+                        error: "Já existe uma vaga cadastrada com esse nome. Por favor, escolha um nome diferente."
+                    }
+                }
+                return {
+                    success: false,
+                    error: "Já existe um registro com essas informações. Por favor, verifique os dados e tente novamente."
+                }
+            }
+        }
+
         const message = error instanceof Error ? error.message : "Failed to create job"
         return { success: false, error: message }
     }

@@ -133,6 +133,25 @@ export async function createBusiness(data: z.infer<typeof businessSchema>) {
 
     } catch (error) {
         console.error("Failed to create business:", error)
+
+        // Handle Prisma unique constraint violations (P2002)
+        if (error && typeof error === 'object' && 'code' in error) {
+            const prismaError = error as { code: string; meta?: { target?: string[] } }
+            if (prismaError.code === 'P2002') {
+                const target = prismaError.meta?.target
+                if (target?.includes('slug') || target?.includes('name')) {
+                    return {
+                        success: false,
+                        error: "Já existe um negócio cadastrado com esse nome. Por favor, escolha um nome diferente para o seu negócio."
+                    }
+                }
+                return {
+                    success: false,
+                    error: "Já existe um registro com essas informações. Por favor, verifique os dados e tente novamente."
+                }
+            }
+        }
+
         const message = error instanceof Error ? error.message : "Failed to create business"
         return { success: false, error: message }
     }

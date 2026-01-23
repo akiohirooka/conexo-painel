@@ -54,27 +54,42 @@ async function handleClerkWebhook(req: Request) {
 
   if (eventType === 'user.created') {
     const { id, email_addresses, first_name, last_name } = evt.data;
-    
+
     try {
       const primaryEmail = email_addresses.find(email => email.id === evt.data.primary_email_address_id);
-      
-      // Create user in database
-      const user = await db.user.create({
-        data: {
-          clerkId: id,
-          email: primaryEmail?.email_address || null,
-          name: `${first_name || ''} ${last_name || ''}`.trim() || null,
+      const email = primaryEmail?.email_address || `${id}@placeholder.local`;
+
+      // Create or update user in database using upsert to handle race conditions
+      const user = await db.users.upsert({
+        where: { clerk_user_id: id },
+        update: {
+          email,
+          first_name: first_name ?? null,
+          last_name: last_name ?? null,
+        },
+        create: {
+          clerk_user_id: id,
+          email,
+          first_name: first_name ?? null,
+          last_name: last_name ?? null,
         },
       });
 
-      // Initialize credit balance in database (free tier credits)
-      await db.creditBalance.create({
-        data: {
-          userId: user.id,
-          clerkUserId: id,
-          creditsRemaining: 0,
-        },
-      });
+      // Initialize credit balance in database (free tier credits) if not exists
+      try {
+        await db.creditBalance.upsert({
+          where: { clerkUserId: id },
+          update: {},
+          create: {
+            userId: user.id,
+            clerkUserId: id,
+            creditsRemaining: 0,
+          },
+        });
+      } catch (creditError) {
+        // Credit balance may already exist, that's OK
+        console.warn('Credit balance already exists or error:', creditError);
+      }
 
       console.log('User and credits created successfully');
     } catch (error) {
@@ -85,32 +100,41 @@ async function handleClerkWebhook(req: Request) {
 
   if (eventType === 'user.updated') {
     const { id, email_addresses, first_name, last_name } = evt.data;
-    
+
     try {
       const primaryEmail = email_addresses.find(email => email.id === evt.data.primary_email_address_id);
-      
-      await db.user.update({
-        where: { clerkId: id },
-        data: {
-          email: primaryEmail?.email_address || null,
-          name: `${first_name || ''} ${last_name || ''}`.trim() || null,
+      const email = primaryEmail?.email_address || `${id}@placeholder.local`;
+
+      // Use upsert to handle case where user doesn't exist yet (race condition with user.created)
+      await db.users.upsert({
+        where: { clerk_user_id: id },
+        update: {
+          email,
+          first_name: first_name ?? null,
+          last_name: last_name ?? null,
+        },
+        create: {
+          clerk_user_id: id,
+          email,
+          first_name: first_name ?? null,
+          last_name: last_name ?? null,
         },
       });
 
       // Check if subscription metadata changed
       const publicMetadata = evt.data.public_metadata as Record<string, unknown>;
-      
+
       if (publicMetadata?.subscriptionPlan || publicMetadata?.creditsRemaining !== undefined) {
         console.log(`User ${id} subscription/credits updated:`, {
           plan: publicMetadata.subscriptionPlan,
           credits: publicMetadata.creditsRemaining
         });
-        
+
         // Update credit balance in our database
-        const dbUser = await db.user.findUnique({
-          where: { clerkId: id }
+        const dbUser = await db.users.findUnique({
+          where: { clerk_user_id: id }
         });
-        
+
         if (dbUser) {
           // If credits are explicitly set, use those; otherwise calculate from plan
           let newCredits = publicMetadata.creditsRemaining;
@@ -119,7 +143,7 @@ async function handleClerkWebhook(req: Request) {
             const plan = SUBSCRIPTION_PLANS[planId];
             newCredits = plan ? await getPlanCredits(planId) : 0;
           }
-          
+
           if (newCredits !== undefined) {
             await refreshUserCredits(id, newCredits as number);
             console.log(`Updated ${id} credits to ${newCredits}`);
@@ -135,8 +159,8 @@ async function handleClerkWebhook(req: Request) {
 
   if (eventType === 'user.deleted') {
     try {
-      await db.user.delete({
-        where: { clerkId: evt.data.id! },
+      await db.users.delete({
+        where: { clerk_user_id: evt.data.id! },
       });
 
       console.log('User deleted successfully');
@@ -164,7 +188,7 @@ async function handleClerkWebhook(req: Request) {
               planKey: planKey ?? undefined,
               occurredAt: new Date((subscription.created_at as string | number) || Date.now()),
               metadata: subscription as unknown as null,
-              userId: (await db.user.findUnique({ where: { clerkId: userId }, select: { id: true } }))?.id || null,
+              userId: (await db.users.findUnique({ where: { clerk_user_id: userId }, select: { id: true } }))?.id || null,
             }
           })
         } catch (err) {
@@ -189,7 +213,7 @@ async function handleClerkWebhook(req: Request) {
     console.log('Subscription updated event:', evt.data);
     const subscription = evt.data as unknown as Record<string, unknown>;
     const userId = subscription.user_id as string;
-    
+
     if (userId) {
       try {
         // Persist event for analytics
@@ -203,7 +227,7 @@ async function handleClerkWebhook(req: Request) {
               planKey: planKey ?? undefined,
               occurredAt: new Date((subscription.updated_at as string | number) || Date.now()),
               metadata: subscription as unknown as null,
-              userId: (await db.user.findUnique({ where: { clerkId: userId }, select: { id: true } }))?.id || null,
+              userId: (await db.users.findUnique({ where: { clerk_user_id: userId }, select: { id: true } }))?.id || null,
             }
           })
         } catch (err) {
@@ -235,7 +259,7 @@ async function handleClerkWebhook(req: Request) {
     console.log('Subscription deleted event:', evt.data);
     const subscription = (evt as unknown as Record<string, unknown>).data as Record<string, unknown>;
     const userId = subscription.user_id as string;
-    
+
     if (userId) {
       try {
         // Persist event for analytics
@@ -249,7 +273,7 @@ async function handleClerkWebhook(req: Request) {
               planKey: planKey ?? undefined,
               occurredAt: new Date((subscription.deleted_at as string | number) || Date.now()),
               metadata: subscription as unknown as null,
-              userId: (await db.user.findUnique({ where: { clerkId: userId }, select: { id: true } }))?.id || null,
+              userId: (await db.users.findUnique({ where: { clerk_user_id: userId }, select: { id: true } }))?.id || null,
             }
           })
         } catch (err) {
@@ -283,7 +307,7 @@ async function handleClerkWebhook(req: Request) {
               planKey: planIdentifier ?? undefined,
               occurredAt: new Date((item.updated_at as string | number) || (item.created_at as string | number) || Date.now()),
               metadata: item as unknown as null,
-              userId: (await db.user.findUnique({ where: { clerkId: userId as string }, select: { id: true } }))?.id || null,
+              userId: (await db.users.findUnique({ where: { clerk_user_id: userId as string }, select: { id: true } }))?.id || null,
             }
           })
         } catch (err) {
@@ -347,7 +371,7 @@ async function handleClerkWebhook(req: Request) {
       }
     } else if (userId) {
       // No matching credit-pack prices detected; likely a subscription renewal.
-      console.log(`Payment successful for user ${userId} - no credit-pack lines detected (handled by subscription.updated)`) 
+      console.log(`Payment successful for user ${userId} - no credit-pack lines detected (handled by subscription.updated)`)
     }
   }
 
@@ -355,7 +379,7 @@ async function handleClerkWebhook(req: Request) {
     console.log('Payment failed event:', evt.data);
     const invoice = (evt as unknown as Record<string, unknown>).data as Record<string, unknown>;
     const userId = invoice.customer_id;
-    
+
     // Handle payment failure - could implement grace period logic here
     if (userId) {
       try {

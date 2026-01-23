@@ -5,7 +5,7 @@
  * - 'user': Regular user (default role for new signups)
  * - 'business': Business owner with access to business management features
  */
-export type UserRole = 'user' | 'business'
+export type UserRole = 'user' | 'business' | 'admin'
 
 /**
  * Current User Object

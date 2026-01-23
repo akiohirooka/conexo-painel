@@ -181,7 +181,7 @@ export function WizardLayout({ children }: WizardLayoutProps) {
                                 title: typeof result.error === 'string' ? result.error : 'Erro ao atualizar. Tente novamente.',
                                 variant: 'danger',
                             })
-                            return
+                            // return removed to ensure loading state is reset
                         }
                     } else {
                         const { createBusiness } = await import('@/actions/create-business')
@@ -199,7 +199,7 @@ export function WizardLayout({ children }: WizardLayoutProps) {
                                 title: typeof result.error === 'string' ? result.error : 'Erro ao criar anúncio. Tente novamente.',
                                 variant: 'danger',
                             })
-                            return
+                            // return removed to ensure loading state is reset
                         }
                     }
                 } else if (listingType === 'event') {
@@ -219,7 +219,7 @@ export function WizardLayout({ children }: WizardLayoutProps) {
                                 title: typeof result.error === 'string' ? result.error : 'Erro ao atualizar. Tente novamente.',
                                 variant: 'danger',
                             })
-                            return
+                            // return removed to ensure loading state is reset
                         }
                     } else {
                         const { createEvent } = await import('@/actions/create-event')
@@ -237,7 +237,7 @@ export function WizardLayout({ children }: WizardLayoutProps) {
                                 title: typeof result.error === 'string' ? result.error : 'Erro ao criar evento. Tente novamente.',
                                 variant: 'danger',
                             })
-                            return
+                            // return removed to ensure loading state is reset
                         }
                     }
                 } else if (listingType === 'job') {
@@ -257,7 +257,7 @@ export function WizardLayout({ children }: WizardLayoutProps) {
                                 title: typeof result.error === 'string' ? result.error : 'Erro ao atualizar. Tente novamente.',
                                 variant: 'danger',
                             })
-                            return
+                            // return removed to ensure loading state is reset
                         }
                     } else {
                         const { createJob } = await import('@/actions/create-job')
@@ -275,7 +275,7 @@ export function WizardLayout({ children }: WizardLayoutProps) {
                                 title: typeof result.error === 'string' ? result.error : 'Erro ao criar vaga. Tente novamente.',
                                 variant: 'danger',
                             })
-                            return
+                            // return removed to ensure loading state is reset
                         }
                     }
                 }

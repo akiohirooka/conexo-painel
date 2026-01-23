@@ -158,7 +158,7 @@ export function AppSidebar({ userRole = 'user', ...props }: AppSidebarProps) {
 
     // Select menu based on role
     const navMain = userRole === 'business' ? navBusiness : navUser
-    const showAdminSection = userRole === 'business'
+    const showAdminSection = userRole === 'admin'
 
     // Helper to check if a main item or its children are active
     const isItemActive = (item: NavItem) => {

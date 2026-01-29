@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Bell, Plus, Search, User } from "lucide-react"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
@@ -19,6 +20,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 export function Topbar() {
     const { user } = useUser();
     const { signOut } = useClerk();
+    const router = useRouter();
 
     return (
         <header className="flex h-16 shrink-0 items-center justify-between gap-4 border-b px-4 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-16">
@@ -61,7 +63,7 @@ export function Topbar() {
                             </div>
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => window.location.href = '/account'}>
+                        <DropdownMenuItem onClick={() => router.push('/account')}>
                             Configurações do Perfil
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />

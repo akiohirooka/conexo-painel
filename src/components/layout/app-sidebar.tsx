@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { site } from "@/lib/brand-config"
 import type { UserRole } from "@/lib/auth"
@@ -212,9 +213,9 @@ export function AppSidebar({ userRole = 'user', ...props }: AppSidebarProps) {
                                                     {item.items?.map((subItem) => (
                                                         <SidebarMenuSubItem key={subItem.title}>
                                                             <SidebarMenuSubButton asChild isActive={pathname === subItem.url}>
-                                                                <a href={subItem.url}>
+                                                                <Link href={subItem.url}>
                                                                     <span>{subItem.title}</span>
-                                                                </a>
+                                                                </Link>
                                                             </SidebarMenuSubButton>
                                                         </SidebarMenuSubItem>
                                                     ))}
@@ -224,10 +225,10 @@ export function AppSidebar({ userRole = 'user', ...props }: AppSidebarProps) {
                                     </Collapsible>
                                 ) : (
                                     <SidebarMenuButton asChild tooltip={item.title} isActive={pathname === item.url}>
-                                        <a href={item.url}>
+                                        <Link href={item.url}>
                                             <item.icon />
                                             <span>{item.title}</span>
-                                        </a>
+                                        </Link>
                                     </SidebarMenuButton>
                                 )}
                             </SidebarMenuItem>
@@ -260,9 +261,9 @@ export function AppSidebar({ userRole = 'user', ...props }: AppSidebarProps) {
                                                 {item.items?.map((subItem) => (
                                                     <SidebarMenuSubItem key={subItem.title}>
                                                         <SidebarMenuSubButton asChild isActive={pathname === subItem.url}>
-                                                            <a href={subItem.url}>
+                                                            <Link href={subItem.url}>
                                                                 <span>{subItem.title}</span>
-                                                            </a>
+                                                            </Link>
                                                         </SidebarMenuSubButton>
                                                     </SidebarMenuSubItem>
                                                 ))}

@@ -8,10 +8,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-/* ============================
-   CORE / BILLING TABLES
-   ============================ */
-
 model Feature {
   id          String   @id @default(cuid())
   workspaceId String
@@ -132,10 +128,6 @@ model SubscriptionEvent {
   @@index([clerkUserId, occurredAt])
 }
 
-/* ============================
-   CONEXO - CATEGORIES / BUSINESSES
-   ============================ */
-
 model business_categories {
   id                     BigInt                   @id @default(autoincrement())
   name                   String
@@ -169,38 +161,33 @@ model businesses {
   category             String?
   subcategory          String[]
   description          String
-  // Location
-  address              String?
-  city                 String?
-  state                String?
-  zip_code             String?
-  latitude             Decimal?            @db.Decimal(10, 8)
-  longitude            Decimal?            @db.Decimal(11, 8)
-  // Contact (Legacy/Simple)
-  phone                String?
-  whatsapp             String?
-  email                String?
-  instagram            String?
-  // Contact (Rich)
-  contacts_data        Json?    // [{ type, value, responsible }]
-  // Extras
-  operating_modes      String[]
-  service_languages    String[]
-  payment_methods      String[]
-  specialties          String[]
-  amenities            String[]
-  opening_hours        Json?    // Structured: [{ days: [], start, end }]
-  logo_url             String?
-  cover_image_url      String?  // Exists
-  gallery_images       String[]
-
   rating               Decimal?            @default(0) @db.Decimal(2, 1)
   review_count         Int                 @default(0)
   is_verified          Boolean             @default(false)
   is_open              Boolean             @default(false)
-  is_published         Boolean             @default(false) // Toggle
+  cover_image_url      String?
   created_at           DateTime            @default(now()) @db.Timestamptz(6)
   updated_at           DateTime            @default(now()) @db.Timestamptz(6)
+  address              String?
+  amenities            String[]
+  city                 String?
+  email                String?
+  gallery_images       String[]
+  instagram            String?
+  latitude             Decimal?            @db.Decimal(10, 8)
+  longitude            Decimal?            @db.Decimal(11, 8)
+  phone                String?
+  state                String?
+  whatsapp             String?
+  zip_code             String?
+  contacts_data        Json?
+  is_published         Boolean             @default(false)
+  logo_url             String?
+  opening_hours        Json?
+  operating_modes      String[]
+  payment_methods      String[]
+  service_languages    String[]
+  specialties          String[]
   business_categories  business_categories @relation(fields: [business_category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   users                users               @relation(fields: [clerk_user_id], references: [clerk_user_id], onDelete: Cascade, onUpdate: NoAction)
 
@@ -278,7 +265,6 @@ model users {
   updated_at         DateTime             @default(now()) @db.Timestamptz(6)
   role               String               @default("user")
   phone              String?
-
   creditBalance      CreditBalance?
   storageObjects     StorageObject[]
   subscriptionEvents SubscriptionEvent[]
@@ -287,22 +273,17 @@ model users {
   user_subscriptions user_subscriptions[]
 }
 
-/* ============================
-   ✅ REVIEWS / FAVORITES / SYSTEM NOTIFICATIONS
-   ============================ */
-
 model reviews {
-  id            BigInt         @id @default(autoincrement())
-  clerk_user_id String         @db.VarChar(255)
+  id            BigInt            @id @default(autoincrement())
+  clerk_user_id String            @db.VarChar(255)
   item_type     ReviewItemType
   item_id       BigInt
   rating        Int
+  comment       String?
+  is_visible    Boolean           @default(true)
+  created_at    DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime          @default(now()) @db.Timestamptz(6)
   title         String?
-  comment       String?        @db.Text
-  is_visible    Boolean        @default(true)
-  created_at    DateTime       @default(now()) @db.Timestamptz(6)
-  updated_at    DateTime       @default(now()) @db.Timestamptz(6)
-
   response      review_responses?
 
   @@unique([clerk_user_id, item_type, item_id], map: "reviews_unique_user_item")
@@ -313,11 +294,10 @@ model reviews {
 model review_responses {
   id                String   @id @default(cuid())
   review_id         BigInt   @unique
-  responder_user_id String   @db.VarChar(255) // clerk_user_id of business owner
-  body              String   @db.Text
+  responder_user_id String   @db.VarChar(255)
+  body              String
   created_at        DateTime @default(now()) @db.Timestamptz(6)
   updated_at        DateTime @default(now()) @db.Timestamptz(6)
-
   review            reviews  @relation(fields: [review_id], references: [id], onDelete: Cascade)
 
   @@index([responder_user_id])
@@ -336,53 +316,39 @@ model favorites {
 }
 
 model system_notifications {
-  id         BigInt           @id @default(autoincrement())
-  title      String
-  message    String           @db.Text
-  type       NotificationType
-  is_active  Boolean          @default(true)
-  starts_at  DateTime?        @db.Timestamptz(6)
-  ends_at    DateTime?        @db.Timestamptz(6)
-  created_at DateTime         @default(now()) @db.Timestamptz(6)
-  updated_at DateTime         @default(now()) @db.Timestamptz(6)
-
+  id                        BigInt                      @id @default(autoincrement())
+  title                     String
+  message                   String
+  type                      NotificationType
+  is_active                 Boolean                     @default(true)
+  starts_at                 DateTime?                   @db.Timestamptz(6)
+  ends_at                   DateTime?                   @db.Timestamptz(6)
+  created_at                DateTime                    @default(now()) @db.Timestamptz(6)
+  updated_at                DateTime                    @default(now()) @db.Timestamptz(6)
   system_notification_users system_notification_users[]
 }
 
 model system_notification_users {
-  id              BigInt               @id @default(autoincrement())
-  notification_id BigInt
-  clerk_user_id   String               @db.VarChar(255)
-  is_read         Boolean              @default(false)
-  is_hidden       Boolean              @default(false)
-  read_at         DateTime?            @db.Timestamptz(6)
-  created_at      DateTime             @default(now()) @db.Timestamptz(6)
-  updated_at      DateTime             @default(now()) @db.Timestamptz(6)
-
+  id                   BigInt               @id @default(autoincrement())
+  notification_id      BigInt
+  clerk_user_id        String               @db.VarChar(255)
+  is_read              Boolean              @default(false)
+  is_hidden            Boolean              @default(false)
+  read_at              DateTime?            @db.Timestamptz(6)
+  created_at           DateTime             @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime             @default(now()) @db.Timestamptz(6)
   system_notifications system_notifications @relation(fields: [notification_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([notification_id, clerk_user_id], map: "system_notification_users_unique")
   @@index([clerk_user_id], map: "system_notification_users_user_idx")
 }
 
-/* ============================
-   ✅ NEW: EVENTS & JOBS (MVP)
-   ============================ */
-
-enum ListingStatus {
-  DRAFT
-  PENDING
-  APPROVED
-  REJECTED
-}
-
 model events {
   id              BigInt        @id @default(autoincrement())
   clerk_user_id   String        @db.VarChar(255)
-  organizer_id    BigInt?       // FK to businesses table (organizer)
   title           String
   slug            String        @unique
-  description     String        @db.Text
+  description     String
   cover_image_url String?
   starts_at       DateTime      @db.Timestamptz(6)
   ends_at         DateTime?     @db.Timestamptz(6)
@@ -392,24 +358,18 @@ model events {
   status          ListingStatus @default(DRAFT)
   is_active       Boolean       @default(true)
   published_at    DateTime?     @db.Timestamptz(6)
-  
-  // Location
-  event_mode      String        @default("presencial") // presencial, online, hybrid
-  address         String?
-  city            String?
-  state           String?
-  
-  // Contacts
-  contacts_data   Json?
   approved_by     String?       @db.VarChar(255)
   approved_at     DateTime?     @db.Timestamptz(6)
-  rejected_reason String?       @db.Text
-  
-  // Gallery
-  gallery_images  String[]
-  
+  rejected_reason String?
   created_at      DateTime      @default(now()) @db.Timestamptz(6)
   updated_at      DateTime      @default(now()) @db.Timestamptz(6)
+  contacts_data   Json?
+  address         String?
+  city            String?
+  event_mode      String        @default("presencial")
+  state           String?
+  organizer_id    BigInt?
+  gallery_images  String[]
 
   @@index([clerk_user_id])
   @@index([organizer_id])
@@ -420,48 +380,37 @@ model events {
 model jobs {
   id              BigInt        @id @default(autoincrement())
   clerk_user_id   String        @db.VarChar(255)
-  contractor_id   BigInt?       // FK to businesses table (contratante)
   company_name    String?
   title           String
   slug            String        @unique
-  description     String        @db.Text
+  description     String
   employment_type String?
   category        String?
-  work_model      String        @default("onsite") // onsite, hybrid, remote
   salary_amount   Int?
   salary_currency String        @default("JPY")
   salary_unit     String?
   is_featured     Boolean       @default(false)
   status          ListingStatus @default(DRAFT)
   is_active       Boolean       @default(true)
-  is_published    Boolean       @default(false)
   published_at    DateTime?     @db.Timestamptz(6)
-
-  // Location (para vagas presenciais/híbridas)
-  address         String?
-  city            String?
-  state           String?
-
-  // Application
-  application_url String?
-  contact_email   String?
-
-  // Media
-  cover_image_url String?
-  gallery_images  String[]
-
-  // Details
-  requirements    String[]      @default([])
-  benefits        String[]      @default([])
-
-  // Contacts
-  contacts_data   Json?
-
   approved_by     String?       @db.VarChar(255)
   approved_at     DateTime?     @db.Timestamptz(6)
-  rejected_reason String?       @db.Text
+  rejected_reason String?
   created_at      DateTime      @default(now()) @db.Timestamptz(6)
   updated_at      DateTime      @default(now()) @db.Timestamptz(6)
+  contacts_data   Json?
+  address         String?
+  application_url String?
+  city            String?
+  contact_email   String?
+  contractor_id   BigInt?
+  cover_image_url String?
+  gallery_images  String[]
+  is_published    Boolean       @default(false)
+  state           String?
+  work_model      String        @default("onsite")
+  benefits        String[]      @default([])
+  requirements    String[]      @default([])
 
   @@index([contractor_id])
   @@index([clerk_user_id])
@@ -469,9 +418,43 @@ model jobs {
   @@index([is_featured])
 }
 
-/* ============================
-   ENUMS
-   ============================ */
+model support_tickets {
+  id            String          @id @default(cuid())
+  clerk_user_id String          @db.VarChar(255)
+  category      SupportCategory @default(OTHER)
+  subject       String
+  message       String
+  status        String          @default("open")
+  created_at    DateTime        @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime        @default(now()) @db.Timestamptz(6)
+
+  @@index([clerk_user_id])
+  @@index([status])
+  @@index([created_at])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model usage_history {
+  id            BigInt   @id @default(autoincrement())
+  item_type     String
+  item_id       BigInt?
+  clerk_user_id String?
+  event_type    String
+  search_query  String?
+  metadata      Json?
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([created_at], map: "idx_usage_history_created_at")
+  @@index([item_type, item_id], map: "idx_usage_history_item")
+  @@index([clerk_user_id], map: "idx_usage_history_owner")
+}
+
+enum ListingStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  REJECTED
+}
 
 enum OperationType {
   AI_TEXT_CHAT
@@ -496,23 +479,4 @@ enum SupportCategory {
   BUG
   SUGGESTION
   OTHER
-}
-
-/* ============================
-   SUPPORT TICKETS
-   ============================ */
-
-model support_tickets {
-  id            String          @id @default(cuid())
-  clerk_user_id String          @db.VarChar(255)
-  category      SupportCategory @default(OTHER)
-  subject       String
-  message       String          @db.Text
-  status        String          @default("open") // open, in_progress, resolved, closed
-  created_at    DateTime        @default(now()) @db.Timestamptz(6)
-  updated_at    DateTime        @default(now()) @db.Timestamptz(6)
-
-  @@index([clerk_user_id])
-  @@index([status])
-  @@index([created_at])
 }

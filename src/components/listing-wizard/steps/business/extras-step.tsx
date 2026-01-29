@@ -27,7 +27,11 @@ export function BusinessExtrasStep() {
         "Consumo no local",
         "Delivery local",
         "Delivery todo Japão",
-        "Retirada na loja"
+        "Retirada na loja",
+        "Atendimento Presencial",
+        "Atendimento Online",
+        "Presencial",
+        "Online"
     ]
 
     const LANGUAGES = [
@@ -47,9 +51,7 @@ export function BusinessExtrasStep() {
     ]
 
     const PAYMENT_METHODS = [
-        "Dinheiro",
-        "Apps/QR Code (PayPay, etc)",
-        "Cartão de Crédito"
+        "Pagamento na entrega (contra entrega)"
     ]
 
     // Helpers

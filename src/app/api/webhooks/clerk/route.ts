@@ -56,7 +56,9 @@ async function handleClerkWebhook(req: Request) {
     const { id, email_addresses, first_name, last_name } = evt.data;
 
     try {
-      const primaryEmail = email_addresses.find(email => email.id === evt.data.primary_email_address_id);
+      const primaryEmail =
+        email_addresses?.find(email => email.id === evt.data.primary_email_address_id) ??
+        email_addresses?.[0];
       const email = primaryEmail?.email_address || `${id}@placeholder.local`;
 
       // Create or update user in database using upsert to handle race conditions
@@ -102,7 +104,9 @@ async function handleClerkWebhook(req: Request) {
     const { id, email_addresses, first_name, last_name } = evt.data;
 
     try {
-      const primaryEmail = email_addresses.find(email => email.id === evt.data.primary_email_address_id);
+      const primaryEmail =
+        email_addresses?.find(email => email.id === evt.data.primary_email_address_id) ??
+        email_addresses?.[0];
       const email = primaryEmail?.email_address || `${id}@placeholder.local`;
 
       // Use upsert to handle case where user doesn't exist yet (race condition with user.created)

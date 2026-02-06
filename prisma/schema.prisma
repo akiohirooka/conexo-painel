@@ -205,6 +205,7 @@ model clerk_webhook_events {
   processed_at          DateTime? @db.Timestamptz(6)
   processing_error      String?
   created_at            DateTime  @default(now()) @db.Timestamptz(6)
+  users                 users?    @relation(fields: [clerk_user_id], references: [clerk_user_id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([clerk_subscription_id])
   @@index([clerk_user_id])
@@ -256,21 +257,32 @@ model user_subscriptions {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model users {
-  id                 String               @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  clerk_user_id      String               @unique
-  first_name         String?
-  last_name          String?
-  email              String
-  created_at         DateTime             @default(now()) @db.Timestamptz(6)
-  updated_at         DateTime             @default(now()) @db.Timestamptz(6)
-  role               String               @default("user")
-  phone              String?
-  creditBalance      CreditBalance?
-  storageObjects     StorageObject[]
-  subscriptionEvents SubscriptionEvent[]
-  usageHistory       UsageHistory[]
-  businesses         businesses[]
-  user_subscriptions user_subscriptions[]
+  id                        String                      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  clerk_user_id             String                      @unique
+  first_name                String?
+  last_name                 String?
+  email                     String
+  created_at                DateTime                    @default(now()) @db.Timestamptz(6)
+  updated_at                DateTime                    @default(now()) @db.Timestamptz(6)
+  role                      String                      @default("user")
+  phone                     String?
+  display_name              String?
+  whatsapp_phone_e164       String?
+  onboarding_completed      Boolean                     @default(false)
+  creditBalance             CreditBalance?
+  storageObjects            StorageObject[]
+  subscriptionEvents        SubscriptionEvent[]
+  usageHistory              UsageHistory[]
+  businesses                businesses[]
+  clerk_webhook_events      clerk_webhook_events[]
+  events                    events[]
+  favorites                 favorites[]
+  jobs                      jobs[]
+  reviews                   reviews[]
+  support_tickets           support_tickets[]
+  system_notification_users system_notification_users[]
+  usage_history             usage_history[]
+  user_subscriptions        user_subscriptions[]
 }
 
 model reviews {
@@ -285,6 +297,7 @@ model reviews {
   updated_at    DateTime          @default(now()) @db.Timestamptz(6)
   title         String?
   response      review_responses?
+  users         users             @relation(fields: [clerk_user_id], references: [clerk_user_id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([clerk_user_id, item_type, item_id], map: "reviews_unique_user_item")
   @@index([item_type, item_id], map: "reviews_item_idx")
@@ -310,6 +323,7 @@ model favorites {
   item_id       BigInt
   created_at    DateTime       @default(now()) @db.Timestamptz(6)
   updated_at    DateTime       @default(now()) @db.Timestamptz(6)
+  users         users          @relation(fields: [clerk_user_id], references: [clerk_user_id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([clerk_user_id, item_type, item_id], map: "favorites_unique_user_item")
   @@index([clerk_user_id], map: "favorites_user_idx")
@@ -337,6 +351,7 @@ model system_notification_users {
   read_at              DateTime?            @db.Timestamptz(6)
   created_at           DateTime             @default(now()) @db.Timestamptz(6)
   updated_at           DateTime             @default(now()) @db.Timestamptz(6)
+  users                users                @relation(fields: [clerk_user_id], references: [clerk_user_id], onDelete: Cascade, onUpdate: NoAction)
   system_notifications system_notifications @relation(fields: [notification_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([notification_id, clerk_user_id], map: "system_notification_users_unique")
@@ -370,6 +385,7 @@ model events {
   state           String?
   organizer_id    BigInt?
   gallery_images  String[]
+  users           users         @relation(fields: [clerk_user_id], references: [clerk_user_id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([clerk_user_id])
   @@index([organizer_id])
@@ -411,6 +427,7 @@ model jobs {
   work_model      String        @default("onsite")
   benefits        String[]      @default([])
   requirements    String[]      @default([])
+  users           users         @relation(fields: [clerk_user_id], references: [clerk_user_id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([contractor_id])
   @@index([clerk_user_id])
@@ -427,6 +444,7 @@ model support_tickets {
   status        String          @default("open")
   created_at    DateTime        @default(now()) @db.Timestamptz(6)
   updated_at    DateTime        @default(now()) @db.Timestamptz(6)
+  users         users           @relation(fields: [clerk_user_id], references: [clerk_user_id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([clerk_user_id])
   @@index([status])
@@ -443,10 +461,36 @@ model usage_history {
   search_query  String?
   metadata      Json?
   created_at    DateTime @default(now()) @db.Timestamptz(6)
+  users         users?   @relation(fields: [clerk_user_id], references: [clerk_user_id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([created_at], map: "idx_usage_history_created_at")
   @@index([item_type, item_id], map: "idx_usage_history_item")
   @@index([clerk_user_id], map: "idx_usage_history_owner")
+}
+
+model leads_instagram {
+  id               BigInt    @id @default(autoincrement())
+  record_id        String    @unique
+  platform         String    @default("instagram")
+  username         String?
+  profile_url      String?
+  display_name     String?
+  bio              String?
+  external_links   Json      @default("[]")
+  email            String?
+  phone            String?
+  context_summary  String?
+  context_tags     Json      @default("[]")
+  is_events        Boolean   @default(false)
+  is_jobs          Boolean   @default(false)
+  confidence       Decimal?  @db.Decimal
+  outreach_subject String?
+  outreach_message String?
+  outreach_cta_url String?
+  sent             Boolean   @default(false)
+  sent_at          DateTime? @db.Timestamptz(6)
+  created_at       DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime  @default(now()) @db.Timestamptz(6)
 }
 
 enum ListingStatus {

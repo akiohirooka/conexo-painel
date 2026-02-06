@@ -1,4 +1,4 @@
-import { SignUp } from "@clerk/nextjs";
+import { SignUp } from '@clerk/nextjs';
 
 export default function SignUpPage() {
   return (
@@ -6,6 +6,8 @@ export default function SignUpPage() {
       routing="path"
       path="/sign-up"
       signInUrl="/sign-in"
+      forceRedirectUrl="/onboarding"
+      fallbackRedirectUrl="/onboarding"
     />
   );
 }

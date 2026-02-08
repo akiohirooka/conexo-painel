@@ -115,3 +115,39 @@ export async function activateBusinessMode() {
         }
     }
 }
+
+export async function requestAccountDeletion() {
+    const { userId } = await auth()
+
+    if (!userId) {
+        return { success: false, error: "Unauthorized" }
+    }
+
+    try {
+        const updatedRows = await db.$executeRaw`
+            UPDATE public.users
+            SET role = 'deleted',
+                deletion_requested_at = COALESCE(deletion_requested_at, NOW())
+            WHERE clerk_user_id = ${userId}
+        `
+
+        if (!updatedRows) {
+            return { success: false, error: "Usuário não encontrado" }
+        }
+
+        revalidatePath("/", "layout")
+        revalidatePath("/account")
+
+        return { success: true }
+    } catch (error) {
+        console.error("Failed to request account deletion:", error)
+        const isDev = process.env.NODE_ENV !== "production"
+        const errorMessage =
+            error instanceof Error ? error.message : "Erro ao solicitar exclusão da conta"
+
+        return {
+            success: false,
+            error: isDev ? errorMessage : "Erro ao solicitar exclusão da conta"
+        }
+    }
+}

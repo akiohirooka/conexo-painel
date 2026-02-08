@@ -1,6 +1,6 @@
-import { redirect } from "next/navigation"
 import { getUserProfile } from "@/actions/user"
 import { ProfileForm } from "@/components/account/profile-form"
+import { DeleteAccountSection } from "@/components/account/delete-account-section"
 
 export default async function AccountPage() {
     const { success, data } = await getUserProfile()
@@ -39,6 +39,8 @@ export default async function AccountPage() {
                     />
                 </div>
             </div>
+
+            <DeleteAccountSection />
         </div>
     )
 }

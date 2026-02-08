@@ -16,6 +16,13 @@ export default E2E_BYPASS
     return NextResponse.next()
   }
   : clerkMiddleware(async (auth, request) => {
+    const pathname = request.nextUrl.pathname
+
+    // Never gate Next.js internals/static assets
+    if (pathname.startsWith('/_next')) {
+      return NextResponse.next()
+    }
+
     // Allow public routes
     if (isPublicRoute(request)) {
       return NextResponse.next()
@@ -42,5 +49,8 @@ export default E2E_BYPASS
   })
 
 export const config = {
-  matcher: ['/((?!.*\\..*|_next).*)', '/', '/(api|trpc)(.*)'],
+  matcher: [
+    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    '/(api|trpc)(.*)',
+  ],
 }

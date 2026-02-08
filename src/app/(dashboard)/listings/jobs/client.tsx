@@ -32,12 +32,29 @@ export type JobColumn = {
 
 interface JobClientPageProps {
     data: JobColumn[]
+    hasBusiness: boolean
 }
 
-export function JobClientPage({ data }: JobClientPageProps) {
+export function JobClientPage({ data, hasBusiness }: JobClientPageProps) {
     const router = useRouter()
 
     if (data.length === 0) {
+        if (!hasBusiness) {
+            return (
+                <div className="flex flex-1 items-center justify-center p-8">
+                    <EmptyState
+                        title="Crie um negócio antes de criar vagas"
+                        description="Antes de criar uma vaga, você precisa criar um negócio que será responsável por ela."
+                        icon={Building2}
+                        action={{
+                            label: "Criar Negócio",
+                            onClick: () => router.push("/listings/new?type=business")
+                        }}
+                    />
+                </div>
+            )
+        }
+
         return (
             <div className="flex flex-1 items-center justify-center p-8">
                 <EmptyState

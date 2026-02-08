@@ -2,17 +2,6 @@
 
 import { db } from "@/lib/db"
 
-export type CategoryWithSubs = {
-    id: number
-    name: string
-    slug: string
-    subcategories: {
-        id: number
-        name: string
-        slug: string
-    }[]
-}
-
 export async function getCategories() {
     try {
         const categories = await db.business_categories.findMany({

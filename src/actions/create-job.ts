@@ -1,10 +1,11 @@
 "use server"
 
-import { auth, clerkClient } from "@clerk/nextjs/server"
+import { auth } from "@clerk/nextjs/server"
 import { db } from "@/lib/db"
 import { jobSchema } from "@/lib/schemas/listing-wizard"
 import { z } from "zod"
 import { revalidatePath } from "next/cache"
+import { getClerkUserProfile, getUsersFallbackEmail } from "@/lib/auth/clerk-user-profile"
 
 export async function createJob(data: z.infer<typeof jobSchema>) {
     const { userId } = await auth()
@@ -15,24 +16,20 @@ export async function createJob(data: z.infer<typeof jobSchema>) {
 
     // Ensure a users row exists for this Clerk user (required by FK)
     try {
-        const clerkUser = clerkClient?.users?.getUser ? await clerkClient.users.getUser(userId).catch(() => null) : null
-        const email =
-            clerkUser?.primaryEmailAddress?.emailAddress ||
-            clerkUser?.emailAddresses?.[0]?.emailAddress ||
-            `${userId}@placeholder.local`
+        const clerkProfile = await getClerkUserProfile(userId)
+        const resolvedEmail = clerkProfile?.email ?? null
 
         await db.users.upsert({
             where: { clerk_user_id: userId },
             update: {
-                email,
-                first_name: clerkUser?.firstName ?? null,
-                last_name: clerkUser?.lastName ?? null,
+                ...(resolvedEmail ? { email: resolvedEmail } : {}),
+                ...(clerkProfile ? { first_name: clerkProfile.firstName, last_name: clerkProfile.lastName } : {}),
             },
             create: {
                 clerk_user_id: userId,
-                email,
-                first_name: clerkUser?.firstName ?? null,
-                last_name: clerkUser?.lastName ?? null,
+                email: resolvedEmail ?? getUsersFallbackEmail(),
+                first_name: clerkProfile?.firstName ?? null,
+                last_name: clerkProfile?.lastName ?? null,
             },
         })
     } catch (err) {

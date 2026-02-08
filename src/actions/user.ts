@@ -3,6 +3,7 @@
 import { auth } from "@clerk/nextjs/server"
 import { db } from "@/lib/db"
 import { revalidatePath } from "next/cache"
+import { getClerkUserProfile, getUsersFallbackEmail } from "@/lib/auth/clerk-user-profile"
 
 export async function getUserProfile() {
     const { userId } = await auth()
@@ -73,12 +74,26 @@ export async function activateBusinessMode() {
     }
 
     try {
-        await db.users.update({
+        const now = new Date()
+        const clerkProfile = await getClerkUserProfile(userId)
+        const resolvedEmail = clerkProfile?.email ?? null
+
+        await db.users.upsert({
             where: {
                 clerk_user_id: userId
             },
-            data: {
-                role: "business"
+            update: {
+                role: "business",
+                updated_at: now,
+                ...(resolvedEmail ? { email: resolvedEmail } : {}),
+            },
+            create: {
+                clerk_user_id: userId,
+                email: resolvedEmail ?? getUsersFallbackEmail(),
+                role: "business",
+                updated_at: now,
+                first_name: clerkProfile?.firstName ?? null,
+                last_name: clerkProfile?.lastName ?? null,
             }
         })
 
@@ -90,6 +105,13 @@ export async function activateBusinessMode() {
         return { success: true }
     } catch (error) {
         console.error("Failed to activate business mode:", error)
-        return { success: false, error: "Erro ao ativar modo business" }
+        const isDev = process.env.NODE_ENV !== "production"
+        const errorMessage =
+            error instanceof Error ? error.message : "Erro ao ativar modo business"
+
+        return {
+            success: false,
+            error: isDev ? errorMessage : "Erro ao ativar modo business"
+        }
     }
 }

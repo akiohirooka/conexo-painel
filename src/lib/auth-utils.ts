@@ -1,6 +1,7 @@
 import { db } from '@/lib/db';
 import { auth } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
+import { getClerkUserProfile, getUsersFallbackEmail } from '@/lib/auth/clerk-user-profile';
 
 
 export async function getUserFromClerkId(clerkId: string) {
@@ -8,12 +9,29 @@ export async function getUserFromClerkId(clerkId: string) {
     where: { clerk_user_id: clerkId }
   });
 
+  const shouldRefreshEmail = user
+    ? user.email.endsWith('@placeholder.local') || !user.email.includes('@')
+    : false;
+  if (user && shouldRefreshEmail) {
+    const clerkProfile = await getClerkUserProfile(clerkId);
+    if (clerkProfile?.email) {
+      user = await db.users.update({
+        where: { id: user.id },
+        data: { email: clerkProfile.email }
+      });
+    }
+  }
+
   if (!user) {
-    // Create user if doesn't exist (with placeholder email since it's required)
+    const clerkProfile = await getClerkUserProfile(clerkId);
+
+    // Create user if doesn't exist (email is required in DB)
     user = await db.users.create({
       data: {
         clerk_user_id: clerkId,
-        email: `${clerkId}@placeholder.local`
+        email: clerkProfile?.email ?? getUsersFallbackEmail(),
+        first_name: clerkProfile?.firstName ?? null,
+        last_name: clerkProfile?.lastName ?? null,
       }
     });
   }

@@ -1,4 +1,5 @@
 import { getEvents } from "@/actions/get-events"
+import { hasUserBusiness } from "@/actions/has-user-business"
 import { EventClientPage } from "./client"
 import { PageHeader } from "@/components/ui-conexo/page-header"
 import { requireRole } from "@/lib/auth"
@@ -6,7 +7,11 @@ import { requireRole } from "@/lib/auth"
 export default async function EventListingsPage() {
     await requireRole('business')
 
-    const { data, success, error } = await getEvents()
+    const [{ data, success, error }, businessCheck] = await Promise.all([
+        getEvents(),
+        hasUserBusiness(),
+    ])
+    const hasBusiness = businessCheck.success ? businessCheck.hasBusiness : true
 
     if (!success) {
         console.error(error)
@@ -20,7 +25,7 @@ export default async function EventListingsPage() {
                 description="Gerencie seus eventos cadastrados."
             />
 
-            <EventClientPage data={data || []} />
+            <EventClientPage data={data || []} hasBusiness={hasBusiness} />
         </div>
     )
 }

@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
@@ -15,7 +14,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { PageHeader } from "@/components/ui-conexo/page-header"
 import { toast } from "@/hooks/use-toast"
-import { createSupportTicket, SupportTicketInput } from "@/actions/create-support-ticket"
+import { createSupportTicket } from "@/actions/create-support-ticket"
 import { Loader2, Send, MessageCircle } from "lucide-react"
 
 const categories = [
@@ -25,11 +24,15 @@ const categories = [
     { value: "OTHER", label: "Outro" },
 ] as const
 
+type SupportTicketFormData = {
+    category?: "QUESTION" | "BUG" | "SUGGESTION" | "OTHER"
+    message: string
+}
+
 export default function FaleConoscoPage() {
-    const router = useRouter()
     const [isLoading, setIsLoading] = useState(false)
     // Initialize category as undefined/empty string to force selection
-    const [formData, setFormData] = useState<Partial<SupportTicketInput>>({
+    const [formData, setFormData] = useState<SupportTicketFormData>({
         category: undefined,
         message: "",
     })
@@ -63,7 +66,7 @@ export default function FaleConoscoPage() {
             const subject = selectedCategory ? selectedCategory.label : "Contato"
 
             const result = await createSupportTicket({
-                category: formData.category as any,
+                category: formData.category,
                 subject: subject, // Use category label as subject
                 message: formData.message,
             })
@@ -83,7 +86,7 @@ export default function FaleConoscoPage() {
                     variant: "destructive",
                 })
             }
-        } catch (error) {
+        } catch {
             toast({
                 title: "Erro",
                 description: "Ocorreu um erro inesperado. Tente novamente.",
@@ -118,7 +121,10 @@ export default function FaleConoscoPage() {
                             <Select
                                 value={formData.category}
                                 onValueChange={(value) =>
-                                    setFormData(prev => ({ ...prev, category: value as any }))
+                                    setFormData(prev => ({
+                                        ...prev,
+                                        category: value as SupportTicketFormData["category"],
+                                    }))
                                 }
                             >
                                 <SelectTrigger id="category">

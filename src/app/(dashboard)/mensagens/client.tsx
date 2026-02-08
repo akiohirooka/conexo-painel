@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "@/hooks/use-toast"
-import { BusinessReview } from "@/actions/get-business-reviews"
 import { respondToReview } from "@/actions/respond-to-review"
+import type { BusinessReview } from "@/lib/types/reviews"
 import {
     MessageSquare,
     Star,
@@ -81,7 +81,7 @@ export function MensagensClient({ reviews }: MensagensClientProps) {
                     variant: "destructive",
                 })
             }
-        } catch (error) {
+        } catch {
             toast({
                 title: "Erro",
                 description: "Ocorreu um erro inesperado.",

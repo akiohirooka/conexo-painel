@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/ui-conexo/page-header"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { EmptyState } from "@/components/ui-conexo/empty-state"
-import { UserReview } from "@/actions/get-user-reviews"
+import type { UserReview } from "@/lib/types/reviews"
 import { Star, MessageSquare, CheckCircle2, Clock, Building2, Calendar, Briefcase } from "lucide-react"
 
 interface MeusReviewsClientProps {

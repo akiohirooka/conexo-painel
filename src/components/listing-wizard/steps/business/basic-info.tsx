@@ -7,15 +7,10 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 import { useEffect, useState } from 'react'
-import { getCategories, CategoryWithSubs } from '@/actions/get-categories'
-import { Badge } from '@/components/ui/badge'
-import { X, Check } from 'lucide-react'
+import { getCategories } from '@/actions/get-categories'
+import type { CategoryWithSubs } from '@/lib/types/categories'
+import { Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
-
-
-
-import { Switch } from '@/components/ui/switch'
 
 export function BusinessBasicStep() {
     const { control, watch, setValue } = useFormContext()

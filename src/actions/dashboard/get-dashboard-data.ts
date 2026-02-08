@@ -2,9 +2,8 @@
 
 import { auth } from "@clerk/nextjs/server"
 import { db as prisma } from "@/lib/db"
-import { unstable_cache } from "next/cache"
 
-export interface DashboardListing {
+interface DashboardListing {
     id: string
     title: string
     type: "Negócio" | "Event" | "Vaga"

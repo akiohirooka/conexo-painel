@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Sparkles, Building2, Loader2 } from "lucide-react"
@@ -10,7 +9,6 @@ import { toast } from "sonner"
 
 export function ActivateBusinessCard() {
     const [isLoading, setIsLoading] = useState(false)
-    const router = useRouter()
 
     async function handleActivateBusiness() {
         setIsLoading(true)
@@ -21,15 +19,14 @@ export function ActivateBusinessCard() {
                 toast.success("Modo Business ativado com sucesso!", {
                     description: "Agora você pode cadastrar negócios, eventos e vagas."
                 })
-                // Redirect to dashboard and force a hard refresh to update the layout
-                router.push("/dashboard")
-                router.refresh()
+                // Force a full navigation so role-dependent server layout/page reloads immediately
+                window.location.href = "/dashboard"
             } else {
                 toast.error("Erro ao ativar modo Business", {
                     description: result.error
                 })
             }
-        } catch (error) {
+        } catch {
             toast.error("Erro ao ativar modo Business", {
                 description: "Por favor, tente novamente."
             })

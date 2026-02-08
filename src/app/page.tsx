@@ -4,9 +4,9 @@ import { getCurrentUser } from "@/lib/auth";
 export default async function RootPage() {
     const user = await getCurrentUser();
 
-    // Default fallback if something fails (though middleware ensures auth)
+    // Fallback when auth is missing
     if (!user) {
-        redirect("/dashboard");
+        redirect("/sign-in");
     }
 
     if (user.role === 'business') {

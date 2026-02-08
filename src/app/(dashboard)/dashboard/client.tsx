@@ -2,16 +2,13 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
 import {
     CheckCircle2,
     Clock,
     XCircle,
     MousePointerClick,
-    Plus,
     LayoutDashboard
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import {
     Table,
     TableBody,
@@ -25,10 +22,17 @@ import { KpiCard } from "@/components/ui-conexo/kpi-card"
 import { PageHeader } from "@/components/ui-conexo/page-header"
 import { StatusBadge } from "@/components/ui-conexo/status-badge"
 import { EmptyState } from "@/components/ui-conexo/empty-state"
-import Link from "next/link"
-
-import { getDashboardData, DashboardListing as Listing } from "@/actions/dashboard/get-dashboard-data"
+import { getDashboardData } from "@/actions/dashboard/get-dashboard-data"
 import { TypeBadge } from "@/components/ui-conexo/type-badge"
+
+type Listing = {
+    id: string
+    title: string
+    type: "Negócio" | "Event" | "Vaga"
+    status: "approved" | "pending" | "rejected"
+    date: string
+    clicks: number
+}
 
 // Helper to get edit URL based on listing type/id
 function getEditUrl(listing: Listing): string {

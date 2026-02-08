@@ -17,7 +17,7 @@ const supportTicketSchema = z.object({
     message: z.string().min(10, "A mensagem deve ter pelo menos 10 caracteres").max(5000, "A mensagem deve ter no máximo 5000 caracteres"),
 })
 
-export type SupportTicketInput = z.infer<typeof supportTicketSchema>
+type SupportTicketInput = z.infer<typeof supportTicketSchema>
 
 // Category labels for display
 const categoryLabels: Record<string, string> = {

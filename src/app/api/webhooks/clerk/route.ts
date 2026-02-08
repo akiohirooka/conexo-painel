@@ -7,6 +7,7 @@ import { SUBSCRIPTION_PLANS } from "@/lib/clerk/subscription-utils";
 import { getPlanCredits } from "@/lib/credits/settings";
 import { getCreditsForPrice } from "@/lib/clerk/credit-packs";
 import { withApiLogging } from '@/lib/logging/api';
+import { getUsersFallbackEmail } from '@/lib/auth/clerk-user-profile';
 
 async function handleClerkWebhook(req: Request) {
   const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET || process.env.WEBHOOK_SECRET;
@@ -59,19 +60,19 @@ async function handleClerkWebhook(req: Request) {
       const primaryEmail =
         email_addresses?.find(email => email.id === evt.data.primary_email_address_id) ??
         email_addresses?.[0];
-      const email = primaryEmail?.email_address || `${id}@placeholder.local`;
+      const email = primaryEmail?.email_address ?? null;
 
       // Create or update user in database using upsert to handle race conditions
       const user = await db.users.upsert({
         where: { clerk_user_id: id },
         update: {
-          email,
+          ...(email ? { email } : {}),
           first_name: first_name ?? null,
           last_name: last_name ?? null,
         },
         create: {
           clerk_user_id: id,
-          email,
+          email: email ?? getUsersFallbackEmail(),
           first_name: first_name ?? null,
           last_name: last_name ?? null,
         },
@@ -107,19 +108,19 @@ async function handleClerkWebhook(req: Request) {
       const primaryEmail =
         email_addresses?.find(email => email.id === evt.data.primary_email_address_id) ??
         email_addresses?.[0];
-      const email = primaryEmail?.email_address || `${id}@placeholder.local`;
+      const email = primaryEmail?.email_address ?? null;
 
       // Use upsert to handle case where user doesn't exist yet (race condition with user.created)
       await db.users.upsert({
         where: { clerk_user_id: id },
         update: {
-          email,
+          ...(email ? { email } : {}),
           first_name: first_name ?? null,
           last_name: last_name ?? null,
         },
         create: {
           clerk_user_id: id,
-          email,
+          email: email ?? getUsersFallbackEmail(),
           first_name: first_name ?? null,
           last_name: last_name ?? null,
         },

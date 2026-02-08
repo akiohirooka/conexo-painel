@@ -1,4 +1,5 @@
 import { getJobs } from "@/actions/get-jobs"
+import { hasUserBusiness } from "@/actions/has-user-business"
 import { JobClientPage } from "./client"
 import { PageHeader } from "@/components/ui-conexo/page-header"
 import { requireRole } from "@/lib/auth"
@@ -6,7 +7,11 @@ import { requireRole } from "@/lib/auth"
 export default async function JobListingsPage() {
     await requireRole('business')
 
-    const { data, success, error } = await getJobs()
+    const [{ data, success, error }, businessCheck] = await Promise.all([
+        getJobs(),
+        hasUserBusiness(),
+    ])
+    const hasBusiness = businessCheck.success ? businessCheck.hasBusiness : true
 
     if (!success) {
         console.error(error)
@@ -20,7 +25,7 @@ export default async function JobListingsPage() {
                 description="Gerencie suas vagas de emprego cadastradas."
             />
 
-            <JobClientPage data={data || []} />
+            <JobClientPage data={data || []} hasBusiness={hasBusiness} />
         </div>
     )
 }

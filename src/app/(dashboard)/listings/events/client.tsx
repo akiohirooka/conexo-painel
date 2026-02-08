@@ -1,7 +1,7 @@
 "use client"
 
 import { EmptyState } from "@/components/ui-conexo/empty-state"
-import { Calendar, Plus, MoreVertical, Edit, Eye, MapPin, Globe, Users } from "lucide-react"
+import { Calendar, Plus, MoreVertical, Edit, Eye, MapPin, Globe, Users, Building2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { StatusBadge } from "@/components/ui-conexo/status-badge"
@@ -31,12 +31,29 @@ export type EventColumn = {
 
 interface EventClientPageProps {
     data: EventColumn[]
+    hasBusiness: boolean
 }
 
-export function EventClientPage({ data }: EventClientPageProps) {
+export function EventClientPage({ data, hasBusiness }: EventClientPageProps) {
     const router = useRouter()
 
     if (data.length === 0) {
+        if (!hasBusiness) {
+            return (
+                <div className="flex flex-1 items-center justify-center p-8">
+                    <EmptyState
+                        title="Crie um negócio antes de criar eventos"
+                        description="Antes de criar um evento, você precisa criar um negócio que será responsável por ele."
+                        icon={Building2}
+                        action={{
+                            label: "Criar Negócio",
+                            onClick: () => router.push("/listings/new?type=business")
+                        }}
+                    />
+                </div>
+            )
+        }
+
         return (
             <div className="flex flex-1 items-center justify-center p-8">
                 <EmptyState

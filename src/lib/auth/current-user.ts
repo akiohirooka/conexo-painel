@@ -1,6 +1,7 @@
 import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 import type { CurrentUser, GetCurrentUserResult, UserRole } from './types'
+import { getClerkUserProfile, getUsersFallbackEmail } from '@/lib/auth/clerk-user-profile'
 
 /**
  * Gets the currently authenticated user with their role.
@@ -42,15 +43,37 @@ export async function getCurrentUser(): Promise<GetCurrentUserResult> {
         },
     })
 
+    if (user && (user.email.endsWith('@placeholder.local') || !user.email.includes('@'))) {
+        const clerkProfile = await getClerkUserProfile(clerkUserId)
+        if (clerkProfile?.email) {
+            user = await db.users.update({
+                where: { id: user.id },
+                data: { email: clerkProfile.email },
+                select: {
+                    id: true,
+                    clerk_user_id: true,
+                    role: true,
+                    email: true,
+                    first_name: true,
+                    last_name: true,
+                },
+            })
+        }
+    }
+
     // If user doesn't exist in our database, create them with default role
     if (!user) {
+        const clerkProfile = await getClerkUserProfile(clerkUserId)
+
         // Get additional info from Clerk if needed
         // For now, we create with minimal data - the webhook or other processes
         // should update the user with full details
         user = await db.users.create({
             data: {
                 clerk_user_id: clerkUserId,
-                email: '', // This should be updated by the Clerk webhook
+                email: clerkProfile?.email ?? getUsersFallbackEmail(),
+                first_name: clerkProfile?.firstName ?? null,
+                last_name: clerkProfile?.lastName ?? null,
                 role: 'user',
             },
             select: {

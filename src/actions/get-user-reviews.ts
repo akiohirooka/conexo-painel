@@ -2,26 +2,7 @@
 
 import { db } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth"
-
-export interface UserReview {
-    id: string
-    rating: number
-    title: string | null
-    comment: string | null
-    itemType: string
-    itemName: string
-    createdAt: string
-    hasResponse: boolean
-    response: {
-        body: string
-        createdAt: string
-    } | null
-}
-
-export interface UserStats {
-    reviewsCount: number
-    favoritesCount: number
-}
+import type { UserReview, UserStats } from "@/lib/types/reviews"
 
 export async function getUserReviews(): Promise<{ success: boolean; data?: UserReview[]; error?: string }> {
     const user = await getCurrentUser()

@@ -60,8 +60,8 @@ export function DeleteAccountSection() {
                 <div className="mb-6">
                     <h2 className="text-lg font-semibold text-destructive">Zona de perigo</h2>
                     <p className="text-sm text-muted-foreground">
-                        Ao deletar sua conta, todas as informações vinculadas a ela também serão removidas
-                        permanentemente.
+                        Sua conta será excluída definitivamente em 14 dias. Após esse prazo, a exclusão é
+                        irreversível e todos os dados serão removidos.
                     </p>
                 </div>
 
@@ -78,8 +78,16 @@ export function DeleteAccountSection() {
                                 Tem certeza que deseja deletar sua conta?
                             </AlertDialogTitle>
                             <AlertDialogDescription className="text-foreground/90">
-                                Essa ação é permanente, todos os seus dados serão apagados e não
-                                será possível recuperar a conta depois.
+                                <span className="block">
+                                    Sua conta será excluída definitivamente em 14 dias.
+                                </span>
+                                <span className="block">
+                                    Até lá, você pode cancelar a exclusão fazendo login novamente.
+                                </span>
+                                <span className="block">
+                                    Após esse prazo, a exclusão é irreversível e todos os dados serão
+                                    removidos.
+                                </span>
                             </AlertDialogDescription>
                         </AlertDialogHeader>
 

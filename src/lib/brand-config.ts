@@ -20,7 +20,7 @@ export type AnalyticsConfig = {
 
 export const site = {
   // INFORMAÇÕES BÁSICAS
-  name: 'Conexo - O maior hub de brasileiros no Japão',
+  name: 'Conexo - Painel Administrativo',
   shortName: 'Conexo',
   description:
     'Conexo é um portal/marketplace criado para centralizar Negócios, Eventos e Vagas da comunidade brasileira e latino-americana no Japão, substituindo a dependência de grupos desorganizados no Facebook, Instagram e WhatsApp por uma plataforma moderna, organizada e fácil de navegar.',

@@ -61,15 +61,18 @@ export async function getCurrentUser(): Promise<GetCurrentUserResult> {
         }
     }
 
-    // If user doesn't exist in our database, create them with default role
+    // If user doesn't exist in our database, create them with default role.
+    // Use upsert to avoid race conditions with Clerk webhook creation.
     if (!user) {
         const clerkProfile = await getClerkUserProfile(clerkUserId)
 
         // Get additional info from Clerk if needed
         // For now, we create with minimal data - the webhook or other processes
         // should update the user with full details
-        user = await db.users.create({
-            data: {
+        user = await db.users.upsert({
+            where: { clerk_user_id: clerkUserId },
+            update: {},
+            create: {
                 clerk_user_id: clerkUserId,
                 email: clerkProfile?.email ?? getUsersFallbackEmail(),
                 first_name: clerkProfile?.firstName ?? null,

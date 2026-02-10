@@ -4,8 +4,10 @@
  * Defines the possible roles a user can have in the system.
  * - 'user': Regular user (default role for new signups)
  * - 'business': Business owner with access to business management features
+ * - 'admin': Administrative user
+ * - 'deleted': Account marked for deletion and blocked from protected areas
  */
-export type UserRole = 'user' | 'business' | 'admin'
+export type UserRole = 'user' | 'business' | 'admin' | 'deleted'
 
 /**
  * Current User Object

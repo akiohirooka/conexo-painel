@@ -5,12 +5,20 @@ import { PageHeader } from "@/components/ui-conexo/page-header"
 import { KpiCard } from "@/components/ui-conexo/kpi-card"
 import { Star, Heart, FileText } from "lucide-react"
 import { ActivateBusinessCard } from "./activate-business-card"
+import { buildAccountDeletedDecisionPath } from "@/lib/auth/deleted-account"
 
 export default async function HomePage() {
     const user = await getCurrentUser()
 
     if (!user) {
         redirect('/sign-in')
+    }
+
+    if (user.role === 'deleted') {
+        redirect(buildAccountDeletedDecisionPath({
+            clerkUserId: user.clerkUserId,
+            email: user.email,
+        }))
     }
 
     // Business users should go to /dashboard
@@ -54,4 +62,3 @@ export default async function HomePage() {
         </div>
     )
 }
-

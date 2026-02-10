@@ -4,6 +4,8 @@ import type { ModelMessage, UIMessage } from 'ai'
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { z } from 'zod'
 import { validateUserAuthentication } from '@/lib/auth-utils'
+import { DeletedAccountError } from '@/lib/auth/account-status'
+import { buildAccountDeletedDecisionPath } from '@/lib/auth/deleted-account'
 import { InsufficientCreditsError } from '@/lib/credits/errors'
 import { validateCreditsForFeature, deductCreditsForFeature, refundCreditsForFeature } from '@/lib/credits/deduct'
 import { type FeatureKey } from '@/lib/credits/feature-config'
@@ -117,6 +119,19 @@ async function handleChatPost(req: Request) {
         return NextResponse.json({ error: 'Erro do provedor' }, { status: 502 })
       }
     } catch (e: unknown) {
+      if (e instanceof DeletedAccountError) {
+        return NextResponse.json(
+          {
+            error: 'Conta marcada como excluida',
+            code: 'account_deleted',
+            redirectTo: buildAccountDeletedDecisionPath({
+              clerkUserId: e.clerkUserId,
+              email: e.email,
+            }),
+          },
+          { status: 403 },
+        )
+      }
       if ((e as { message?: string })?.message === 'Unauthorized') {
         return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
       }

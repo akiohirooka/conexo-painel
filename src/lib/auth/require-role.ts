@@ -1,6 +1,16 @@
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from './current-user'
 import type { CurrentUser, UserRole } from './types'
+import { buildAccountDeletedDecisionPath } from './deleted-account'
+
+function redirectIfDeleted(user: CurrentUser) {
+    if (user.role === 'deleted') {
+        redirect(buildAccountDeletedDecisionPath({
+            clerkUserId: user.clerkUserId,
+            email: user.email,
+        }))
+    }
+}
 
 /**
  * Requires a specific role for accessing a server page or action.
@@ -34,6 +44,8 @@ export async function requireRole(requiredRole: UserRole): Promise<CurrentUser> 
         // User not authenticated - redirect to Clerk sign-in
         redirect('/sign-in')
     }
+
+    redirectIfDeleted(user)
 
     if (user.role !== requiredRole) {
         // User authenticated but doesn't have required role
@@ -69,6 +81,8 @@ export async function requireAnyRole(allowedRoles: UserRole[]): Promise<CurrentU
         redirect('/sign-in')
     }
 
+    redirectIfDeleted(user)
+
     if (!allowedRoles.includes(user.role)) {
         // Redirect to appropriate home based on actual role
         if (user.role === 'user') {
@@ -101,6 +115,8 @@ export async function requireAuth(): Promise<CurrentUser> {
     if (!user) {
         redirect('/sign-in')
     }
+
+    redirectIfDeleted(user)
 
     return user
 }

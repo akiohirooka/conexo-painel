@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { validateUserAuthentication } from '@/lib/auth-utils'
+import { DeletedAccountError } from '@/lib/auth/account-status'
+import { buildAccountDeletedDecisionPath } from '@/lib/auth/deleted-account'
 import { validateCreditsForFeature, deductCreditsForFeature, refundCreditsForFeature } from '@/lib/credits/deduct'
 import { InsufficientCreditsError } from '@/lib/credits/errors'
 import { type FeatureKey } from '@/lib/credits/feature-config'
@@ -62,6 +64,19 @@ async function handleImageGeneration(req: Request) {
     try {
       userId = await validateUserAuthentication()
     } catch (e: unknown) {
+      if (e instanceof DeletedAccountError) {
+        return NextResponse.json(
+          {
+            error: 'Account deleted',
+            code: 'account_deleted',
+            redirectTo: buildAccountDeletedDecisionPath({
+              clerkUserId: e.clerkUserId,
+              email: e.email,
+            }),
+          },
+          { status: 403 },
+        )
+      }
       if ((e as Error)?.message === 'Unauthorized') {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
       }

@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 import { validateUserAuthentication } from '@/lib/auth-utils'
+import { DeletedAccountError } from '@/lib/auth/account-status'
+import { buildAccountDeletedDecisionPath } from '@/lib/auth/deleted-account'
 import { withApiLogging } from '@/lib/logging/api'
 
 type OpenRouterModel = {
@@ -44,6 +46,19 @@ async function handleOpenRouterModels(req: Request) {
     try {
       await validateUserAuthentication()
     } catch (e) {
+      if (e instanceof DeletedAccountError) {
+        return NextResponse.json(
+          {
+            error: 'Account deleted',
+            code: 'account_deleted',
+            redirectTo: buildAccountDeletedDecisionPath({
+              clerkUserId: e.clerkUserId,
+              email: e.email,
+            }),
+          },
+          { status: 403 },
+        )
+      }
       if (e && typeof e === 'object' && 'message' in e && (e as { message?: string }).message === 'Unauthorized') {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
       }

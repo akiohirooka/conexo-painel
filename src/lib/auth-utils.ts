@@ -2,6 +2,7 @@ import { db } from '@/lib/db';
 import { auth } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 import { getClerkUserProfile, getUsersFallbackEmail } from '@/lib/auth/clerk-user-profile';
+import { assertAccountIsNotDeleted } from '@/lib/auth/account-status';
 
 
 export async function getUserFromClerkId(clerkId: string) {
@@ -25,9 +26,11 @@ export async function getUserFromClerkId(clerkId: string) {
   if (!user) {
     const clerkProfile = await getClerkUserProfile(clerkId);
 
-    // Create user if doesn't exist (email is required in DB)
-    user = await db.users.create({
-      data: {
+    // Upsert prevents duplicate key errors when webhook and app requests race.
+    user = await db.users.upsert({
+      where: { clerk_user_id: clerkId },
+      update: {},
+      create: {
         clerk_user_id: clerkId,
         email: clerkProfile?.email ?? getUsersFallbackEmail(),
         first_name: clerkProfile?.firstName ?? null,
@@ -52,6 +55,8 @@ export async function validateUserAuthentication() {
   if (!userId) {
     throw new Error('Unauthorized');
   }
+
+  await assertAccountIsNotDeleted(userId);
 
   return userId;
 }

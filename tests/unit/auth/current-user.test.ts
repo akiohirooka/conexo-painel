@@ -12,9 +12,14 @@ vi.mock('@/lib/db', () => ({
     db: {
         users: {
             findUnique: vi.fn(),
-            create: vi.fn(),
+            upsert: vi.fn(),
         },
     },
+}))
+
+vi.mock('@/lib/auth/clerk-user-profile', () => ({
+    getClerkUserProfile: vi.fn(),
+    getUsersFallbackEmail: vi.fn(() => 'pending-email@placeholder.local'),
 }))
 
 import { auth } from '@clerk/nextjs/server'
@@ -69,21 +74,25 @@ describe('getCurrentUser', () => {
             id: '550e8400-e29b-41d4-a716-446655440001',
             clerk_user_id: clerkUserId,
             role: 'user' as const,
-            email: '',
+            email: 'pending-email@placeholder.local',
             first_name: null,
             last_name: null,
         }
 
         mockAuth.mockResolvedValue({ userId: clerkUserId } as any)
         mockDb.users.findUnique.mockResolvedValue(null)
-        mockDb.users.create.mockResolvedValue(createdUser as any)
+        mockDb.users.upsert.mockResolvedValue(createdUser as any)
 
         const result = await getCurrentUser()
 
-        expect(mockDb.users.create).toHaveBeenCalledWith({
-            data: {
+        expect(mockDb.users.upsert).toHaveBeenCalledWith({
+            where: { clerk_user_id: clerkUserId },
+            update: {},
+            create: {
                 clerk_user_id: clerkUserId,
-                email: '',
+                email: 'pending-email@placeholder.local',
+                first_name: null,
+                last_name: null,
                 role: 'user',
             },
             select: {
@@ -100,7 +109,7 @@ describe('getCurrentUser', () => {
             clerkUserId: clerkUserId,
             dbUserId: createdUser.id,
             role: 'user',
-            email: '',
+            email: 'pending-email@placeholder.local',
             firstName: null,
             lastName: null,
         })

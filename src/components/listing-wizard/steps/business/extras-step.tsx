@@ -51,6 +51,10 @@ export function BusinessExtrasStep() {
     ]
 
     const PAYMENT_METHODS = [
+        "Dinheiro",
+        "Cartão de Crédito",
+        "e-Money (PayPay, Rakuten Pay, au PAY, etc.)",
+        "Transferência bancária",
         "Pagamento na entrega (contra entrega)"
     ]
 

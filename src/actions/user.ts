@@ -124,12 +124,41 @@ export async function requestAccountDeletion() {
     }
 
     try {
-        const updatedRows = await db.$executeRaw`
-            UPDATE public.users
-            SET role = 'deleted',
-                deletion_requested_at = COALESCE(deletion_requested_at, NOW())
-            WHERE clerk_user_id = ${userId}
-        `
+        const updatedRows = await db.$transaction(async (tx) => {
+            const usersUpdated = await tx.$executeRaw`
+                UPDATE public.users
+                SET role = 'deleted',
+                    deletion_requested_at = COALESCE(deletion_requested_at, NOW())
+                WHERE clerk_user_id = ${userId}
+            `
+
+            if (!usersUpdated) {
+                return 0
+            }
+
+            await tx.businesses.updateMany({
+                where: { clerk_user_id: userId },
+                data: { is_published: false }
+            })
+
+            await tx.events.updateMany({
+                where: { clerk_user_id: userId },
+                data: {
+                    status: "DRAFT",
+                    is_active: false
+                }
+            })
+
+            await tx.jobs.updateMany({
+                where: { clerk_user_id: userId },
+                data: {
+                    status: "DRAFT",
+                    is_active: false
+                }
+            })
+
+            return usersUpdated
+        })
 
         if (!updatedRows) {
             return { success: false, error: "Usuário não encontrado" }

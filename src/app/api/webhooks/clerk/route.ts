@@ -62,15 +62,36 @@ async function handleClerkWebhook(req: Request) {
         email_addresses?.[0];
       const email = primaryEmail?.email_address ?? null;
 
-      // Create or update user in database using upsert to handle race conditions
-      const user = await db.users.upsert({
+      // Check if user already exists
+      const existingUser = await db.users.findUnique({
         where: { clerk_user_id: id },
-        update: {
-          ...(email ? { email } : {}),
-          first_name: first_name ?? null,
-          last_name: last_name ?? null,
-        },
-        create: {
+        select: { id: true, role: true },
+      })
+
+      // If user exists, only update if NOT deleted (avoid recreating deleted users)
+      if (existingUser) {
+        if (existingUser.role === 'deleted') {
+          console.warn(`[Webhook] Skipping user.created for deleted user: ${id}`)
+          return new Response('OK', { status: 200 })
+        }
+
+        // Update existing user
+        await db.users.update({
+          where: { clerk_user_id: id },
+          data: {
+            ...(email ? { email } : {}),
+            first_name: first_name ?? null,
+            last_name: last_name ?? null,
+          },
+        })
+
+        console.log('[Webhook] User updated (was already created):', id)
+        return new Response('OK', { status: 200 })
+      }
+
+      // Create new user only if doesn't exist
+      const user = await db.users.create({
+        data: {
           clerk_user_id: id,
           email: email ?? getUsersFallbackEmail(),
           first_name: first_name ?? null,
@@ -169,13 +190,18 @@ async function handleClerkWebhook(req: Request) {
 
   if (eventType === 'user.deleted') {
     try {
-      await db.users.delete({
+      const deleted = await db.users.deleteMany({
         where: { clerk_user_id: evt.data.id! },
       });
 
-      console.log('User deleted successfully');
+      if (deleted.count > 0) {
+        console.log(`[Webhook] User deleted successfully: ${evt.data.id} (${deleted.count} records)`)
+      } else {
+        console.log(`[Webhook] User already deleted (likely by API): ${evt.data.id}`)
+      }
     } catch (error) {
-      console.error('Error deleting user:', error);
+      console.error('[Webhook] Error deleting user:', error);
+      // Don't fail the webhook - user might already be deleted by API
     }
   }
 

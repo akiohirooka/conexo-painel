@@ -76,16 +76,22 @@ export function AccountDeletedDecisionActions() {
     setIsResetting(true)
 
     try {
+      console.log('[Reset] Calling API:', ACCOUNT_RESET_API_PATH)
       const response = await fetch(ACCOUNT_RESET_API_PATH, {
         method: "POST",
       })
+
+      console.log('[Reset] Response status:', response.status, response.ok)
 
       const payload = (await response.json().catch(() => null)) as
         | ResetResponse
         | { error?: string }
         | null
 
+      console.log('[Reset] Response payload:', payload)
+
       if (!response.ok || !payload || !("success" in payload)) {
+        console.error('[Reset] API call failed:', { response, payload })
         toast({
           title: "Erro ao resetar conta",
           description:
@@ -96,17 +102,21 @@ export function AccountDeletedDecisionActions() {
         return
       }
 
+      console.log('[Reset] Account reset successful, signing out...')
+
       try {
         await signOut({ redirectUrl: "/sign-up" })
-      } catch {
+      } catch (signOutError) {
+        console.error('[Reset] SignOut failed:', signOutError)
         try {
           await setActive?.({ session: null })
-        } catch {
-          // ignore and fallback to hard redirect
+        } catch (setActiveError) {
+          console.error('[Reset] SetActive failed:', setActiveError)
         }
         window.location.href = "/sign-up"
       }
-    } catch {
+    } catch (error) {
+      console.error('[Reset] Unexpected error:', error)
       toast({
         title: "Erro ao resetar conta",
         description: "Não foi possível resetar sua conta agora.",

@@ -65,6 +65,10 @@ export async function getCurrentUser(): Promise<GetCurrentUserResult> {
     // Use upsert to avoid race conditions with Clerk webhook creation.
     if (!user) {
         const clerkProfile = await getClerkUserProfile(clerkUserId)
+        if (!clerkProfile) {
+            // Prevent recreating a local user from stale sessions after account reset.
+            return null
+        }
 
         // Get additional info from Clerk if needed
         // For now, we create with minimal data - the webhook or other processes

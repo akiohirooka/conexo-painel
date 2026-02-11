@@ -25,6 +25,10 @@ export async function getUserFromClerkId(clerkId: string) {
 
   if (!user) {
     const clerkProfile = await getClerkUserProfile(clerkId);
+    if (!clerkProfile) {
+      // Prevent recreating local users when Clerk account no longer exists.
+      throw new Error('Clerk user not found');
+    }
 
     // Upsert prevents duplicate key errors when webhook and app requests race.
     user = await db.users.upsert({

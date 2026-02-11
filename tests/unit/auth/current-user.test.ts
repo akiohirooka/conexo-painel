@@ -24,9 +24,11 @@ vi.mock('@/lib/auth/clerk-user-profile', () => ({
 
 import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
+import { getClerkUserProfile } from '@/lib/auth/clerk-user-profile'
 
 const mockAuth = vi.mocked(auth)
 const mockDb = vi.mocked(db)
+const mockGetClerkUserProfile = vi.mocked(getClerkUserProfile)
 
 describe('getCurrentUser', () => {
     beforeEach(() => {
@@ -81,6 +83,11 @@ describe('getCurrentUser', () => {
 
         mockAuth.mockResolvedValue({ userId: clerkUserId } as any)
         mockDb.users.findUnique.mockResolvedValue(null)
+        mockGetClerkUserProfile.mockResolvedValue({
+            email: null,
+            firstName: null,
+            lastName: null,
+        })
         mockDb.users.upsert.mockResolvedValue(createdUser as any)
 
         const result = await getCurrentUser()
@@ -113,6 +120,19 @@ describe('getCurrentUser', () => {
             firstName: null,
             lastName: null,
         })
+    })
+
+    it('does not create user when Clerk profile is missing', async () => {
+        const clerkUserId = 'user_deleted123'
+
+        mockAuth.mockResolvedValue({ userId: clerkUserId } as any)
+        mockDb.users.findUnique.mockResolvedValue(null)
+        mockGetClerkUserProfile.mockResolvedValue(null)
+
+        const result = await getCurrentUser()
+
+        expect(result).toBeNull()
+        expect(mockDb.users.upsert).not.toHaveBeenCalled()
     })
 })
 

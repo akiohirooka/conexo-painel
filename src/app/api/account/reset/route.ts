@@ -160,28 +160,59 @@ async function deleteR2Keys(keys: string[]) {
 }
 
 async function deleteUserData(userId: string, clerkUserId: string) {
-  await db.$transaction(async (tx) => {
-    await tx.usageHistory.deleteMany({
-      where: { userId },
-    })
+  try {
+    await db.$transaction(async (tx) => {
+      // Check if user still exists (webhook might have deleted it already)
+      const userExists = await tx.users.findUnique({
+        where: { id: userId },
+        select: { id: true },
+      })
 
-    await tx.storageObject.deleteMany({
-      where: { userId },
-    })
+      if (!userExists) {
+        console.log('[Account Reset] User already deleted (likely by webhook), skipping')
+        return
+      }
 
-    await tx.creditBalance.deleteMany({
-      where: { userId },
-    })
+      console.log('[Account Reset] Deleting UsageHistory:', { userId })
+      const deletedUsageHistory = await tx.usageHistory.deleteMany({
+        where: { userId },
+      })
+      console.log('[Account Reset] Deleted UsageHistory count:', deletedUsageHistory.count)
 
-    await tx.subscriptionEvent.updateMany({
-      where: { clerkUserId },
-      data: { userId: null },
-    })
+      console.log('[Account Reset] Deleting StorageObject:', { userId })
+      const deletedStorageObjects = await tx.storageObject.deleteMany({
+        where: { userId },
+      })
+      console.log('[Account Reset] Deleted StorageObject count:', deletedStorageObjects.count)
 
-    await tx.users.delete({
-      where: { id: userId },
+      console.log('[Account Reset] Deleting CreditBalance:', { userId })
+      const deletedCreditBalance = await tx.creditBalance.deleteMany({
+        where: { userId },
+      })
+      console.log('[Account Reset] Deleted CreditBalance count:', deletedCreditBalance.count)
+
+      console.log('[Account Reset] Updating SubscriptionEvent:', { clerkUserId })
+      const updatedSubscriptionEvents = await tx.subscriptionEvent.updateMany({
+        where: { clerkUserId },
+        data: { userId: null },
+      })
+      console.log('[Account Reset] Updated SubscriptionEvent count:', updatedSubscriptionEvents.count)
+
+      console.log('[Account Reset] Deleting user record:', { id: userId, clerkUserId })
+      await tx.users.delete({
+        where: { id: userId },
+      })
+      console.log('[Account Reset] User record deleted successfully')
     })
-  })
+  } catch (error) {
+    console.error('[Account Reset] Transaction failed:', error)
+    // If error is "Record to delete does not exist", that's OK (webhook deleted it)
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') {
+      console.log('[Account Reset] User was already deleted, continuing...')
+      return
+    }
+    throw error
+  }
 }
 
 function wait(ms: number) {
@@ -203,7 +234,8 @@ async function handleAccountReset() {
       )
     }
 
-    const user = await db.users.findUnique({
+    // Check for multiple users with same clerk_user_id (should never happen)
+    const allMatchingUsers = await db.users.findMany({
       where: { clerk_user_id: clerkUserId },
       select: {
         id: true,
@@ -212,9 +244,24 @@ async function handleAccountReset() {
       },
     })
 
-    if (!user) {
+    console.log('[Account Reset] Found users with clerk_user_id:', {
+      clerkUserId,
+      count: allMatchingUsers.length,
+      users: allMatchingUsers,
+    })
+
+    if (allMatchingUsers.length === 0) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
+
+    if (allMatchingUsers.length > 1) {
+      console.error('[Account Reset] Multiple users found!', {
+        clerkUserId,
+        count: allMatchingUsers.length,
+      })
+    }
+
+    const user = allMatchingUsers[0]
 
     if (user.role !== 'deleted') {
       return NextResponse.json(
@@ -236,6 +283,11 @@ async function handleAccountReset() {
 
     const { deletedCount, failedKeys } = await deleteR2Keys(r2Keys)
     if (failedKeys.length > 0) {
+      console.error('[Account Reset] Failed to delete R2 objects:', {
+        clerkUserId,
+        failedCount: failedKeys.length,
+        failedKeys: failedKeys.slice(0, 20),
+      })
       return NextResponse.json(
         {
           error: 'Failed to delete all objects from R2',
@@ -247,20 +299,53 @@ async function handleAccountReset() {
       )
     }
 
-    await deleteUserData(user.id, clerkUserId)
+    console.log('[Account Reset] Deleting from Clerk FIRST to prevent webhooks:', {
+      clerkUserId,
+    })
 
     const clerk = createClerkClient({ secretKey: clerkSecretKey })
-    await clerk.users.deleteUser(clerkUserId)
 
-    // Defensive cleanup: remove any residual local records and re-check.
-    await db.users.deleteMany({ where: { clerk_user_id: clerkUserId } })
-    await wait(POST_DELETE_SWEEP_DELAY_MS)
-    await db.users.deleteMany({ where: { clerk_user_id: clerkUserId } })
+    try {
+      await clerk.users.deleteUser(clerkUserId)
+      console.log('[Account Reset] User deleted from Clerk successfully')
+    } catch (clerkError) {
+      console.error('[Account Reset] Failed to delete from Clerk:', clerkError)
+      // Continue anyway - user might already be deleted from Clerk
+    }
+
+    console.log('[Account Reset] Now deleting user data from database:', {
+      userId: user.id,
+      clerkUserId,
+    })
+
+    await deleteUserData(user.id, clerkUserId)
+
+    console.log('[Account Reset] User data deleted, running defensive cleanup:', {
+      clerkUserId,
+    })
+
+    // Aggressive defensive cleanup: remove any residual local records multiple times
+    for (let i = 0; i < 3; i++) {
+      const deleted = await db.users.deleteMany({ where: { clerk_user_id: clerkUserId } })
+      console.log(`[Account Reset] Cleanup iteration ${i + 1}: deleted ${deleted.count} records`)
+      if (deleted.count === 0) break
+      await wait(POST_DELETE_SWEEP_DELAY_MS)
+    }
 
     const remainingUsers = await db.users.count({
       where: { clerk_user_id: clerkUserId },
     })
+
+    console.log('[Account Reset] Final check:', {
+      clerkUserId,
+      remainingUsers,
+    })
+
     if (remainingUsers > 0) {
+      console.error('[Account Reset] Users still remain after deletion!', {
+        clerkUserId,
+        remainingUsers,
+      })
       return NextResponse.json(
         {
           error: 'Failed to fully remove users record',
@@ -269,6 +354,11 @@ async function handleAccountReset() {
         { status: 500 },
       )
     }
+
+    console.log('[Account Reset] Account reset completed successfully:', {
+      clerkUserId,
+      deletedR2Objects: deletedCount,
+    })
 
     return NextResponse.json({
       success: true,

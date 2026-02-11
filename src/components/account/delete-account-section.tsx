@@ -4,7 +4,6 @@ import { useState } from "react"
 import { useClerk } from "@clerk/nextjs"
 import { Loader2 } from "lucide-react"
 import { requestAccountDeletion } from "@/actions/user"
-import { toast } from "@/hooks/use-toast"
 import {
     AlertDialog,
     AlertDialogAction,
@@ -30,26 +29,23 @@ export function DeleteAccountSection() {
         setIsDeleting(true)
 
         try {
-            const result = await requestAccountDeletion()
+            // Mark account as deleted AND sign out in parallel
+            const [deletionResult] = await Promise.allSettled([
+                requestAccountDeletion(),
+                signOut()
+            ])
 
-            if (!result.success) {
-                toast({
-                    title: "Erro",
-                    description: result.error || "Não foi possível deletar a conta.",
-                    variant: "destructive",
-                })
-                return
+            // Log if deletion failed
+            if (deletionResult.status === 'rejected') {
+                console.error("Failed to mark account as deleted:", deletionResult.reason)
             }
 
-            await signOut({ redirectUrl: "/sign-up" })
-        } catch {
-            toast({
-                title: "Erro",
-                description: "Não foi possível deletar a conta.",
-                variant: "destructive",
-            })
-        } finally {
-            setIsDeleting(false)
+            // Force redirect after both complete
+            window.location.href = "/sign-up"
+        } catch (error) {
+            console.error("Failed to delete account:", error)
+            // Even if something fails, redirect anyway
+            window.location.href = "/sign-up"
         }
     }
 

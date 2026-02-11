@@ -33,9 +33,12 @@ export default async function AccountDeletedDecisionPage({
     email: accountStatus.email,
   })
 
+  // Await searchParams before accessing properties (Next.js 15+)
+  const params = await searchParams
+
   if (
-    searchParams.clerk_user_id !== accountStatus.clerkUserId ||
-    (searchParams.email || '') !== (accountStatus.email || '')
+    params.clerk_user_id !== accountStatus.clerkUserId ||
+    (params.email || '') !== (accountStatus.email || '')
   ) {
     redirect(redirectPath)
   }

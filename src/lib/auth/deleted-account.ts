@@ -1,5 +1,6 @@
 export const ACCOUNT_DELETED_DECISION_PATH = '/account-deleted-decision'
 export const ACCOUNT_REACTIVATE_API_PATH = '/api/account/reactivate'
+export const ACCOUNT_RESET_API_PATH = '/api/account/reset'
 
 export type AccountAccessState = 'active' | 'deleted' | 'not_found'
 

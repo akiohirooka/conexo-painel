@@ -41,8 +41,7 @@ export function DeleteAccountSection() {
                 return
             }
 
-            await signOut()
-            window.location.href = "/sign-up"
+            await signOut({ redirectUrl: "/sign-up" })
         } catch {
             toast({
                 title: "Erro",

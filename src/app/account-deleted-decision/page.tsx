@@ -1,5 +1,6 @@
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
+import Image from 'next/image'
 import {
   buildAccountDeletedDecisionPath,
 } from '@/lib/auth/deleted-account'
@@ -42,6 +43,14 @@ export default async function AccountDeletedDecisionPage({
   return (
     <main className="min-h-screen w-full bg-background px-6 py-16">
       <div className="mx-auto w-full max-w-2xl rounded-2xl border bg-card p-8 shadow-sm">
+        <Image
+          src="/logo-conexo.png"
+          alt="Conexo"
+          width={120}
+          height={32}
+          className="mb-4 h-auto w-auto"
+          priority
+        />
         <p className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
           Conta marcada para exclusão
         </p>

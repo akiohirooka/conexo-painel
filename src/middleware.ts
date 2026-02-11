@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import {
   ACCOUNT_DELETED_DECISION_PATH,
   ACCOUNT_REACTIVATE_API_PATH,
+  ACCOUNT_RESET_API_PATH,
   buildAccountDeletedDecisionPath,
   type AccountAccessState,
 } from '@/lib/auth/deleted-account'
@@ -20,6 +21,7 @@ const isAccountDeletedDecisionRoute = createRouteMatcher([
 ])
 const isDeletedAccountAllowedApiRoute = createRouteMatcher([
   `${ACCOUNT_REACTIVATE_API_PATH}(.*)`,
+  `${ACCOUNT_RESET_API_PATH}(.*)`,
 ])
 
 const E2E_BYPASS = process.env.E2E_AUTH_BYPASS === '1'

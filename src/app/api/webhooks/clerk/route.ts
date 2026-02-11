@@ -110,17 +110,22 @@ async function handleClerkWebhook(req: Request) {
         email_addresses?.[0];
       const email = primaryEmail?.email_address ?? null;
 
-      // Use upsert to handle case where user doesn't exist yet (race condition with user.created)
-      await db.users.upsert({
+      const existingUser = await db.users.findUnique({
         where: { clerk_user_id: id },
-        update: {
+        select: { id: true },
+      })
+
+      // Avoid recreating users from delayed user.updated events
+      // after account reset/deletion.
+      if (!existingUser) {
+        console.warn(`Skipping user.updated for missing local user ${id}`)
+        return new Response('OK', { status: 200 })
+      }
+
+      await db.users.update({
+        where: { clerk_user_id: id },
+        data: {
           ...(email ? { email } : {}),
-          first_name: first_name ?? null,
-          last_name: last_name ?? null,
-        },
-        create: {
-          clerk_user_id: id,
-          email: email ?? getUsersFallbackEmail(),
           first_name: first_name ?? null,
           last_name: last_name ?? null,
         },

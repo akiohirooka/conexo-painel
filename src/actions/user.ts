@@ -135,9 +135,6 @@ export async function requestAccountDeletion() {
             return { success: false, error: "Usuário não encontrado" }
         }
 
-        revalidatePath("/", "layout")
-        revalidatePath("/account")
-
         return { success: true }
     } catch (error) {
         console.error("Failed to request account deletion:", error)

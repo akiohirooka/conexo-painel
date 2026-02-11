@@ -55,9 +55,9 @@ export const site = {
 
   // ÍCONES
   icons: {
-    favicon: '/images/conexo-logotype-color.ico',
-    apple: '/images/conexo-logotype-color.ico',
-    shortcut: '/images/conexo-logotype-color.ico',
+    favicon: '/icon-512x512.png',
+    apple: '/icon-512x512.png',
+    shortcut: '/icon-512x512.png',
   } as IconPaths,
 
   // REDES SOCIAIS

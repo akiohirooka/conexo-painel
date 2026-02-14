@@ -7,6 +7,8 @@ import { Star, Heart, FileText } from "lucide-react"
 import { ActivateBusinessCard } from "./activate-business-card"
 import { buildAccountDeletedDecisionPath } from "@/lib/auth/deleted-account"
 
+import { TutorialModal } from "@/components/onboarding/tutorial-modal"
+
 export default async function HomePage() {
     const user = await getCurrentUser()
 
@@ -30,6 +32,7 @@ export default async function HomePage() {
 
     return (
         <div className="flex flex-1 flex-col gap-6 p-6">
+            <TutorialModal />
             <PageHeader
                 title={`Olá${user.firstName ? `, ${user.firstName}` : ''}!`}
                 description="Bem-vindo ao Conexo. Seu hub para conexões e oportunidades."

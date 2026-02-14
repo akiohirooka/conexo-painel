@@ -24,6 +24,7 @@ import { StatusBadge } from "@/components/ui-conexo/status-badge"
 import { EmptyState } from "@/components/ui-conexo/empty-state"
 import { getDashboardData } from "@/actions/dashboard/get-dashboard-data"
 import { TypeBadge } from "@/components/ui-conexo/type-badge"
+import { TutorialModal } from "@/components/onboarding/tutorial-modal"
 
 type Listing = {
     id: string
@@ -82,6 +83,7 @@ export function DashboardClient() {
 
     return (
         <div className="flex flex-1 flex-col gap-6 p-6">
+            <TutorialModal />
             <PageHeader
                 title="Visão Geral"
                 description="Acompanhe o desempenho dos seus anúncios."
